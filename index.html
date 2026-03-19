@@ -46,85 +46,104 @@
     margin: 0 auto;
   }
 
-  /* big timer row */
+  /* big timer row — 6 equal columns, height locked to timer */
   .timer-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 4px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    align-items: stretch;
+    margin-bottom: 6px;
+    height: clamp(2.4rem, 11vw, 4rem);
+    overflow: hidden;
   }
 
   .timer-display {
+    grid-column: 1 / 3;
     font-family: 'Playfair Display', serif;
-    /* clamp: min 2.4rem, fluid, max 4rem — fills mobile nicely, stays tame on desktop */
     font-size: clamp(2.4rem, 11vw, 4rem);
     font-weight: 400;
     letter-spacing: -0.04em;
     line-height: 1;
     transition: color 0.25s;
+    white-space: nowrap;
+    align-self: center;
   }
 
   .timer-display.cue { color: var(--accent); }
 
-  .timer-right-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-    flex: 1;
-    min-width: 0;
-  }
+  .timer-spacer { grid-column: 3 / 5; }
 
+  /* col 5: name tight above grams, both pinned to top */
   .timer-step-info {
-    text-align: right;
-    min-height: 32px;
+    grid-column: 5 / 6;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    gap: 1px;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding-bottom: 1px;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .tsi-name {
-    font-size: 0.68rem;
-    letter-spacing: 0.04em;
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--bg);
+    color: rgba(245,240,232,0.5);
     font-weight: 500;
     white-space: nowrap;
+    line-height: 1.2;
   }
 
   .tsi-target {
     font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
+    font-size: clamp(1.4rem, 6vw, 2.2rem);
     color: var(--accent);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.04em;
     line-height: 1;
     white-space: nowrap;
   }
 
   .tsi-unit {
-    font-size: 0.55rem;
+    font-size: 0.52rem;
     color: rgba(245,240,232,0.4);
     margin-left: 2px;
     font-family: 'DM Mono', monospace;
+    vertical-align: middle;
+  }
+
+  /* col 6: next tight above pips+status, both pinned to bottom */
+  .timer-right-info {
+    grid-column: 6 / 7;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding-bottom: 1px;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .tsi-next {
-    font-size: 0.52rem;
-    color: rgba(245,240,232,0.35);
-    letter-spacing: 0.04em;
+    font-size: 0.5rem;
+    color: rgba(245,240,232,0.32);
+    letter-spacing: 0.03em;
     text-transform: uppercase;
-    white-space: nowrap;
+    line-height: 1.3;
+    white-space: normal;
+    word-break: break-word;
+    margin-bottom: 2px;
   }
-    letter-spacing: 0.1em;
+
+  .timer-label {
+    font-size: 0.5rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: rgba(245,240,232,0.4);
     transition: color 0.2s;
     white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
   }
 
   .timer-label.lit { color: var(--accent); }
@@ -251,26 +270,11 @@
 
   .mode-btn-grid:active { opacity: 0.7; }
 
-  /* ── SCROLLABLE BODY ── */
   .scroll-body {
-    padding: 0 14px max(20px, env(safe-area-inset-bottom));
+    padding: 12px 14px max(20px, env(safe-area-inset-bottom));
     max-width: 480px;
     margin: 0 auto;
   }
-
-  /* ── HEADER ── */
-  header {
-    display: flex; align-items: baseline; justify-content: space-between;
-    padding: 12px 0 10px; border-bottom: 1px solid var(--rule); margin-bottom: 12px;
-  }
-
-  header h1 {
-    font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 400;
-    letter-spacing: -0.02em; line-height: 1;
-  }
-
-  header h1 em { font-style: italic; color: var(--accent); }
-  #header-sub { font-size: 0.54rem; color: var(--mid); letter-spacing: 0.1em; text-transform: uppercase; }
 
   /* ── TWO-COL ── */
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
@@ -381,20 +385,23 @@
 
   .step-header { display: flex; align-items: center; gap: 7px; padding: 9px 0; }
   .step-title { flex: 1; font-size: 0.7rem; color: var(--ink); transition: color 0.2s; }
-  .step-badge { font-family: 'Playfair Display', serif; font-size: 0.88rem; color: var(--mid); transition: color 0.2s; }
-  .step-time-badge { font-size: 0.56rem; color: var(--mid); white-space: nowrap; min-width: 26px; text-align: right; transition: color 0.2s; }
+  .step-badge { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--ink); transition: color 0.2s; letter-spacing: -0.01em; }
+  .step-time-badge { font-size: 0.65rem; color: var(--mid); white-space: nowrap; min-width: 26px; text-align: right; transition: color 0.2s; font-weight: 500; }
 
   .step-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
   .step-body-inner { overflow: hidden; }
   .step-body-pad { padding: 2px 0 11px; }
-  .step-note { font-size: 0.62rem; color: var(--mid); line-height: 1.55; margin-bottom: 5px; }
-  .step-target { font-family: 'Playfair Display', serif; font-size: 1.9rem; color: var(--accent); letter-spacing: -0.02em; line-height: 1; }
-  .step-target-unit { font-size: 0.62rem; color: var(--mid); margin-left: 3px; font-family: 'DM Mono', monospace; }
+  .step-note { font-size: 0.62rem; color: var(--mid); line-height: 1.55; }
 
   .step.active { border-top: 2px solid var(--accent); }
   .step.active .step-body { grid-template-rows: 1fr; }
   .step.active .step-title { font-weight: 500; }
-  .step.active .step-badge { color: var(--accent); }
+  .step.active .step-badge {
+    color: var(--accent);
+    font-size: 1.9rem;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
   .step.active .step-time-badge { color: var(--accent); }
   .step.done .step-title, .step.done .step-badge, .step.done .step-time-badge { opacity: 0.28; }
 
@@ -402,162 +409,129 @@
     font-size: 0.6rem; color: var(--mid); margin-top: 8px; padding: 7px 9px;
     background: var(--card); border-radius: 4px; border-left: 2px solid var(--rule);
   }
-  /* ── FAB ── */
-  .fab {
-    position: fixed;
-    bottom: max(24px, env(safe-area-inset-bottom, 24px));
-    right: 20px;
-    z-index: 200;
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    background: var(--ink);
-    border: 1.5px solid var(--rule);
-    color: var(--bg);
-    font-size: 1.1rem;
-    cursor: pointer;
+  /* ── RECIPE BAR (bottom of timer block) ── */
+  .recipe-bar {
+    border-top: 1px solid rgba(245,240,232,0.08);
+    margin-top: 10px;
+    padding: 7px 0 0;
+  }
+
+  .recipe-bar-label {
+    font-size: 0.48rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.28);
+    margin-bottom: 5px;
+  }
+
+  .chip-strip {
     display: flex;
     align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 12px rgba(26,21,16,0.3);
-    transition: transform 0.15s, opacity 0.15s;
+    gap: 5px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 10px;
+  }
+  .chip-strip::-webkit-scrollbar { display: none; }
+
+  .recipe-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(245,240,232,0.12);
+    background: rgba(245,240,232,0.05);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.12s;
+    flex-shrink: 0;
+    min-height: 26px;
   }
 
-  .fab:active { transform: scale(0.92); }
+  .recipe-chip:active { background: rgba(245,240,232,0.12); }
 
-  /* ── MODAL OVERLAY ── */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 300;
-    background: rgba(26,21,16,0.55);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
+  .recipe-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
   }
 
-  .modal-overlay.open {
-    opacity: 1;
-    pointer-events: all;
+  .chip-name {
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.5);
+    transition: color 0.12s;
   }
 
-  .modal {
-    background: var(--bg);
-    width: 100%;
-    max-width: 480px;
-    border-radius: 12px 12px 0 0;
-    padding: 20px 20px max(24px, env(safe-area-inset-bottom, 20px));
-    transform: translateY(100%);
-    transition: transform 0.25s ease;
-    max-height: 80dvh;
-    display: flex;
-    flex-direction: column;
+  .recipe-chip.active .chip-name { color: var(--bg); }
+
+  .chip-del {
+    font-size: 0.48rem;
+    color: rgba(245,240,232,0.3);
+    margin-left: 1px;
+    line-height: 1;
+    padding: 0 1px;
+    transition: color 0.12s;
   }
 
-  .modal-overlay.open .modal {
-    transform: translateY(0);
+  .recipe-chip.active .chip-del { color: rgba(245,240,232,0.6); }
+
+  .chip-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    border: 1px dashed rgba(245,240,232,0.15);
+    background: transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-height: 26px;
+    transition: all 0.12s;
   }
 
-  .modal-handle {
-    width: 36px; height: 4px; border-radius: 2px;
-    background: var(--rule); margin: 0 auto 16px; flex-shrink: 0;
+  .chip-add:active { background: rgba(245,240,232,0.07); }
+
+  .chip-add-label {
+    font-size: 0.54rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.3);
   }
 
-  .modal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 16px; flex-shrink: 0;
+  .chip-save-row {
+    display: flex; gap: 7px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.22s ease, padding 0.22s ease;
+    padding: 0;
   }
 
-  .modal-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem; font-weight: 400; letter-spacing: -0.01em;
+  .chip-save-row.open {
+    max-height: 50px;
+    padding-bottom: 10px;
   }
 
-  .modal-title em { font-style: italic; color: var(--accent); }
-
-  .modal-close {
-    width: 30px; height: 30px; border-radius: 50%;
-    background: var(--card); border: none; cursor: pointer;
-    font-size: 1rem; color: var(--mid); display: flex;
-    align-items: center; justify-content: center;
+  .chip-input {
+    flex: 1; padding: 7px 10px;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    border: 1px solid rgba(245,240,232,0.18); border-radius: 3px;
+    background: rgba(245,240,232,0.07); color: var(--bg); outline: none;
+    min-height: 34px;
   }
 
-  /* save current row */
-  .modal-save-row {
-    display: flex; gap: 8px; margin-bottom: 16px; flex-shrink: 0;
-  }
+  .chip-input::placeholder { color: rgba(245,240,232,0.22); }
+  .chip-input:focus { border-color: rgba(245,240,232,0.35); }
 
-  .modal-name-input {
-    flex: 1; padding: 9px 12px;
-    font-family: 'DM Mono', monospace; font-size: 0.78rem;
-    border: 1px solid var(--rule); border-radius: 3px;
-    background: var(--bg); color: var(--ink); outline: none;
-    min-height: 40px;
-  }
-
-  .modal-name-input:focus { border-color: var(--mid); }
-
-  .modal-save-btn {
-    padding: 9px 16px; font-family: 'DM Mono', monospace;
-    font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
-    cursor: pointer; border-radius: 3px; min-height: 40px;
-    background: var(--ink); color: var(--bg); border: 1.5px solid var(--ink);
-    white-space: nowrap; transition: opacity 0.15s;
-  }
-
-  .modal-save-btn:active { opacity: 0.75; }
-
-  /* preset list */
-  .modal-list {
-    overflow-y: auto;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-
-  .modal-empty {
-    font-size: 0.7rem; color: var(--mid); text-align: center;
-    padding: 24px 0; opacity: 0.6;
-  }
-
-  .preset-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 11px 12px; background: var(--card); border-radius: 4px;
-    cursor: pointer; transition: background 0.12s;
-  }
-
-  .preset-row:active { background: var(--rule); }
-
-  .preset-row-info { flex: 1; min-width: 0; }
-
-  .preset-row-name {
-    font-size: 0.78rem; color: var(--ink); font-weight: 500;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-
-  .preset-row-desc {
-    font-size: 0.6rem; color: var(--mid); margin-top: 2px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-
-  .preset-row-del {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: transparent; border: 1px solid var(--rule);
-    color: var(--mid); font-size: 0.9rem; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: all 0.12s;
-  }
-
-  .preset-row-del:active { background: var(--rule); }
-
-  .modal-divider {
-    font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--mid); margin: 12px 0 6px; flex-shrink: 0;
-    opacity: 0.6;
+  .chip-confirm {
+    padding: 7px 14px; font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
+    cursor: pointer; border-radius: 3px; min-height: 34px;
+    background: var(--accent); color: var(--bg); border: 1.5px solid var(--accent);
+    white-space: nowrap;
   }
 </style>
 </head>
@@ -568,8 +542,10 @@
   <div class="timer-inner">
     <div class="timer-row">
       <div class="timer-display" id="timer">0:00</div>
+      <div class="timer-spacer"></div>
+      <div class="timer-step-info" id="timer-step-info"></div>
       <div class="timer-right-info">
-        <div class="timer-step-info" id="timer-step-info"></div>
+        <div class="tsi-next" id="tsi-next-line"></div>
         <div class="timer-label" id="timer-label">
           <div class="step-pip" id="step-pip"></div>
           <span id="timer-label-text">ready</span>
@@ -586,14 +562,25 @@
       <button class="mode-btn-grid" id="btn-iced" onclick="setMode('iced')">🧊 Iced</button>
     </div>
   </div>
+
+  <!-- RECIPE BAR -->
+  <div class="recipe-bar">
+    <div style="max-width:480px;margin:0 auto;">
+      <div class="recipe-bar-label">My recipes</div>
+      <div class="chip-strip" id="chip-strip">
+        <button class="chip-add" id="chip-add" onclick="toggleChipSave()">
+          <span class="chip-add-label">+ save</span>
+        </button>
+      </div>
+      <div class="chip-save-row" id="chip-save-row">
+        <input class="chip-input" id="chip-input" type="text" placeholder="Name this recipe…" maxlength="40" autocomplete="off" autocorrect="off" spellcheck="false">
+        <button class="chip-confirm" onclick="saveChipPreset()">Save</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="scroll-body">
-  <header>
-    <h1>Pour <em>Over</em></h1>
-    <p id="header-sub">Recipe &amp; brew timer</p>
-  </header>
-
   <div class="two-col">
 
     <!-- LEFT: callouts + settings -->
@@ -816,7 +803,6 @@
     mode = m;
     document.getElementById('btn-hot').classList.toggle('active', m === 'hot');
     document.getElementById('btn-iced').classList.toggle('active', m === 'iced');
-    document.getElementById('header-sub').textContent = m === 'iced' ? 'Iced brew' : 'Recipe & brew timer';
     document.getElementById('callout-ice').style.display = m === 'iced' ? 'flex' : 'none';
     document.getElementById('callout-main-label').textContent = m === 'iced' ? 'Hot water' : 'Total water';
     rollers['coffee'] && rollers['coffee'].setVal(m === 'iced' ? 30 : 20);
@@ -907,7 +893,6 @@
         '</div>' +
         '<div class="step-body"><div class="step-body-inner"><div class="step-body-pad">' +
           '<p class="step-note">' + note + '</p>' +
-          '<div class="step-target">' + target + '<span class="step-target-unit">' + unit + '</span></div>' +
         '</div></div></div>';
       container.appendChild(div);
     }
@@ -1007,18 +992,23 @@
 
   function updateTimerStepInfo(activeStep) {
     const el = document.getElementById('timer-step-info');
+    const nx = document.getElementById('tsi-next-line');
     if (!el) return;
 
     if (!running && elapsed === 0) {
-      // pre-brew: show first step coming up
       const v = calc();
       el.innerHTML =
         '<span class="tsi-name">Bloom</span>' +
         '<span class="tsi-target">' + fmt(v.bloomG) + '<span class="tsi-unit">g</span></span>';
+      if (nx) nx.innerHTML = '';
       return;
     }
 
-    if (activeStep < 0 || activeStep >= numSteps) { el.innerHTML = ''; return; }
+    if (activeStep < 0 || activeStep >= numSteps) {
+      el.innerHTML = '';
+      if (nx) nx.innerHTML = '';
+      return;
+    }
 
     const v = calc();
     const name = pourName(activeStep);
@@ -1026,18 +1016,19 @@
     const isLast = activeStep === numSteps - 1;
     const unit = activeStep === 0 ? 'g' : (v.isIced && isLast) ? 'g hot' : 'g';
 
-    // next step hint
-    let nextHtml = '';
-    if (activeStep < numSteps - 1) {
-      const nextName = pourName(activeStep + 1);
-      const nextTime = fmtTime(cueTimes[activeStep + 1]);
-      nextHtml = '<span class="tsi-next">next: ' + nextName + ' @ ' + nextTime + '</span>';
-    }
-
     el.innerHTML =
       '<span class="tsi-name">' + name + '</span>' +
-      '<span class="tsi-target">' + target + '<span class="tsi-unit">' + unit + '</span></span>' +
-      nextHtml;
+      '<span class="tsi-target">' + target + '<span class="tsi-unit">' + unit + '</span></span>';
+
+    if (nx) {
+      if (activeStep < numSteps - 1) {
+        const nextName = pourName(activeStep + 1);
+        const nextTime = fmtTime(cueTimes[activeStep + 1]);
+        nx.textContent = nextName + ' @ ' + nextTime;
+      } else {
+        nx.textContent = '';
+      }
+    }
   }
 
   function updateTimer() {
@@ -1126,7 +1117,7 @@
   document.getElementById('btn-start').addEventListener('click', startStop);
   document.getElementById('btn-reset').addEventListener('click', reset);
 
-  // ── Presets ──
+  // ── Presets (chip-based) ──
   const PRESET_KEY = 'pourover_presets';
 
   function loadPresets() {
@@ -1137,62 +1128,35 @@
     try { localStorage.setItem(PRESET_KEY, JSON.stringify(list)); } catch(e) {}
   }
 
-  function presetDesc(p) {
-    const ratio = Number.isInteger(p.ratio) ? p.ratio : p.ratio.toFixed(1);
-    const t = Math.floor(p.brewtotal/60) + ':' + String(p.brewtotal%60).padStart(2,'0');
-    return (p.mode === 'iced' ? 'Iced · ' : 'Hot · ') +
-      p.coffee + 'g · 1:' + ratio + ' · ' + p.pours + ' pour' + (p.pours !== 1 ? 's' : '') + ' · ' + t;
-  }
-
-  function renderPresetList() {
-    const list = loadPresets();
-    const el = document.getElementById('preset-list');
-    const lbl = document.getElementById('saved-label');
-    el.innerHTML = '';
-    lbl.style.display = list.length ? '' : 'none';
-
-    if (!list.length) {
-      el.innerHTML = '<div class="modal-empty">No saved recipes yet.<br>Dial in your settings and save one.</div>';
-      return;
-    }
-
-    list.forEach((p, i) => {
-      const row = document.createElement('div');
-      row.className = 'preset-row';
-      row.innerHTML =
-        '<div class="preset-row-info">' +
-          '<div class="preset-row-name">' + escHtml(p.name) + '</div>' +
-          '<div class="preset-row-desc">' + escHtml(presetDesc(p)) + '</div>' +
-        '</div>' +
-        '<button class="preset-row-del" title="Delete" onclick="deletePreset(' + i + ');event.stopPropagation();">✕</button>';
-      row.addEventListener('click', () => loadPreset(p));
-      el.appendChild(row);
-    });
-  }
-
   function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function savePreset() {
-    const input = document.getElementById('preset-name-input');
-    const name = input.value.trim();
-    if (!name) { input.focus(); return; }
+  function renderChips() {
     const list = loadPresets();
-    list.unshift({ name, ...state, mode, savedAt: Date.now() });
-    savePresets(list);
-    input.value = '';
-    renderPresetList();
+    const strip = document.getElementById('chip-strip');
+    const addBtn = document.getElementById('chip-add');
+    // remove existing chips (not the add button)
+    strip.querySelectorAll('.recipe-chip').forEach(el => el.remove());
+    list.forEach((p, i) => {
+      const chip = document.createElement('div');
+      chip.className = 'recipe-chip';
+      chip.dataset.idx = i;
+      chip.innerHTML =
+        '<span class="chip-name">' + escHtml(p.name) + '</span>' +
+        '<span class="chip-del" data-idx="' + i + '">✕</span>';
+      chip.addEventListener('click', (e) => {
+        if (e.target.classList.contains('chip-del')) {
+          deletePreset(parseInt(e.target.dataset.idx));
+        } else {
+          applyPreset(p, chip);
+        }
+      });
+      strip.insertBefore(chip, addBtn);
+    });
   }
 
-  function deletePreset(i) {
-    const list = loadPresets();
-    list.splice(i, 1);
-    savePresets(list);
-    renderPresetList();
-  }
-
-  function loadPreset(p) {
+  function applyPreset(p, chipEl) {
     Object.keys(CONFIGS).forEach(k => {
       if (p[k] !== undefined) state[k] = p[k];
     });
@@ -1200,65 +1164,64 @@
       mode = p.mode;
       document.getElementById('btn-hot').classList.toggle('active', mode === 'hot');
       document.getElementById('btn-iced').classList.toggle('active', mode === 'iced');
-      document.getElementById('header-sub').textContent = mode === 'iced' ? 'Iced brew' : 'Recipe & brew timer';
       document.getElementById('callout-ice').style.display = mode === 'iced' ? 'flex' : 'none';
       document.getElementById('callout-main-label').textContent = mode === 'iced' ? 'Hot water' : 'Total water';
     }
     Object.keys(CONFIGS).forEach(k => rollers[k] && rollers[k].setVal(state[k]));
-    closeModal();
+    // highlight active chip
+    document.querySelectorAll('.recipe-chip').forEach(c => c.classList.remove('active'));
+    if (chipEl) chipEl.classList.add('active');
   }
 
-  function openModal() {
-    renderPresetList();
-    document.getElementById('modal-overlay').classList.add('open');
-    setTimeout(() => document.getElementById('preset-name-input').focus(), 300);
+  function saveChipPreset() {
+    const input = document.getElementById('chip-input');
+    const name = input.value.trim();
+    if (!name) { input.focus(); return; }
+    const list = loadPresets();
+    list.push({ name, ...state, mode, savedAt: Date.now() });
+    savePresets(list);
+    input.value = '';
+    chipSaveOpen = false;
+    document.getElementById('chip-save-row').classList.remove('open');
+    renderChips();
+    // auto-highlight newly saved chip
+    const chips = document.querySelectorAll('.recipe-chip');
+    if (chips.length) {
+      document.querySelectorAll('.recipe-chip').forEach(c => c.classList.remove('active'));
+      chips[chips.length - 1].classList.add('active');
+    }
   }
 
-  function closeModal() {
-    document.getElementById('modal-overlay').classList.remove('open');
+  function deletePreset(i) {
+    const list = loadPresets();
+    list.splice(i, 1);
+    savePresets(list);
+    renderChips();
   }
 
-  function handleOverlayClick(e) {
-    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  let chipSaveOpen = false;
+  function toggleChipSave() {
+    chipSaveOpen = !chipSaveOpen;
+    document.getElementById('chip-save-row').classList.toggle('open', chipSaveOpen);
+    if (chipSaveOpen) setTimeout(() => document.getElementById('chip-input').focus(), 220);
   }
 
-  // close on Enter in name input
-  document.getElementById('preset-name-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') savePreset();
-  });
-
+  loadState();
   // apply saved mode to UI
   document.getElementById('btn-hot').classList.toggle('active', mode === 'hot');
   document.getElementById('btn-iced').classList.toggle('active', mode === 'iced');
-  document.getElementById('header-sub').textContent = mode === 'iced' ? 'Iced brew' : 'Recipe & brew timer';
   document.getElementById('callout-ice').style.display = mode === 'iced' ? 'flex' : 'none';
   document.getElementById('callout-main-label').textContent = mode === 'iced' ? 'Hot water' : 'Total water';
   Object.keys(CONFIGS).forEach(setupRoller);
   renderSteps();
+  renderChips();
 </script>
-<!-- FAB -->
-<button class="fab" id="fab" onclick="openModal()" title="Saved recipes">☰</button>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <span class="modal-title">Saved <em>recipes</em></span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-
-    <div class="modal-save-row">
-      <input class="modal-name-input" id="preset-name-input" type="text"
-        placeholder="Name this recipe…" maxlength="40"
-        autocomplete="off" autocorrect="off" spellcheck="false">
-      <button class="modal-save-btn" onclick="savePreset()">Save</button>
-    </div>
-
-    <div class="modal-divider" id="saved-label" style="display:none;">Saved</div>
-    <div class="modal-list" id="preset-list"></div>
-  </div>
-</div>
+<script>
+  document.getElementById('chip-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveChipPreset();
+  });
+</script>
 
 </body>
 </html>
