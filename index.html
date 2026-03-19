@@ -587,8 +587,24 @@
     return ORDINALS[i-1] + ' pour';
   }
 
+  function saveState() {
+    try { localStorage.setItem('pourover', JSON.stringify({ ...state, mode })); } catch(e) {}
+  }
+
+  function loadState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('pourover'));
+      if (!saved) return;
+      Object.keys(CONFIGS).forEach(k => {
+        if (saved[k] !== undefined) state[k] = saved[k];
+      });
+      if (saved.mode === 'iced') mode = 'iced';
+    } catch(e) {}
+  }
+
   function renderSteps() {
     buildCueTimes();
+    saveState();
     const v = calc();
     document.getElementById('target-display').textContent = fmtTime(state.brewtotal);
     document.getElementById('total-water').textContent = fmt(v.isIced ? v.hotwater : v.water);
@@ -705,6 +721,13 @@
   document.getElementById('btn-start').addEventListener('click', startStop);
   document.getElementById('btn-reset').addEventListener('click', reset);
 
+  loadState();
+  // apply saved mode to UI
+  document.getElementById('btn-hot').classList.toggle('active', mode === 'hot');
+  document.getElementById('btn-iced').classList.toggle('active', mode === 'iced');
+  document.getElementById('header-sub').textContent = mode === 'iced' ? 'Iced brew' : 'Recipe & brew timer';
+  document.getElementById('callout-ice').style.display = mode === 'iced' ? 'flex' : 'none';
+  document.getElementById('callout-main-label').textContent = mode === 'iced' ? 'Hot water' : 'Total water';
   Object.keys(CONFIGS).forEach(setupRoller);
   renderSteps();
 </script>
