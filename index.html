@@ -29,23 +29,35 @@
     overscroll-behavior: none;
   }
 
-  /* ── STICKY TIMER ── */
+  /* ── STICKY TIMER BLOCK ── */
   .timer-block {
     position: sticky;
     top: 0;
     z-index: 100;
     background: var(--ink);
     color: var(--bg);
-    padding: 12px 16px;
+    padding: 14px 16px 12px;
+    /* cap width on desktop, center it */
+    width: 100%;
   }
 
-  .timer-top { display: flex; align-items: center; gap: 12px; }
+  .timer-inner {
+    max-width: 480px;
+    margin: 0 auto;
+  }
 
-  .timer-left { display: flex; flex-direction: column; align-items: flex-start; flex: 0 0 auto; }
+  /* big timer row */
+  .timer-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
 
   .timer-display {
     font-family: 'Playfair Display', serif;
-    font-size: 3.2rem;
+    /* clamp: min 2.4rem, fluid, max 4rem — fills mobile nicely, stays tame on desktop */
+    font-size: clamp(2.4rem, 11vw, 4rem);
     font-weight: 400;
     letter-spacing: -0.04em;
     line-height: 1;
@@ -55,45 +67,90 @@
   .timer-display.cue { color: var(--accent); }
 
   .timer-label {
-    font-size: 0.56rem;
+    font-size: 0.58rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: rgba(245,240,232,0.4);
-    height: 15px;
-    margin-top: 3px;
     transition: color 0.2s;
     white-space: nowrap;
   }
 
   .timer-label.lit { color: var(--accent); }
 
-  .timer-right { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+  /* progress bar */
+  .progress-track {
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 1px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
 
-  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 1s linear;
+    border-radius: 1px;
+  }
 
-  .controls button {
+  /* 2×2 grid: [Start] [Reset] / [Hot] [Iced] */
+  .timer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .timer-grid button {
     font-family: 'DM Mono', monospace;
-    font-size: 0.66rem;
+    font-size: 0.68rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
     border-radius: 3px;
-    padding: 9px 8px;
-    min-height: 40px;
-    transition: opacity 0.15s;
+    padding: 10px 8px;
+    min-height: 42px;
+    transition: opacity 0.15s, background 0.15s;
   }
 
-  #btn-start { background: var(--accent); color: var(--bg); border: 1.5px solid var(--accent); }
+  #btn-start {
+    background: var(--accent);
+    color: var(--bg);
+    border: 1.5px solid var(--accent);
+  }
+
   #btn-start:active { opacity: 0.75; }
-  #btn-reset { background: transparent; color: rgba(245,240,232,0.5); border: 1.5px solid rgba(245,240,232,0.15); }
+
+  #btn-reset {
+    background: transparent;
+    color: rgba(245,240,232,0.5);
+    border: 1.5px solid rgba(245,240,232,0.18);
+  }
+
   #btn-reset:active { background: rgba(255,255,255,0.07); }
 
-  .progress-track { height: 2px; background: rgba(255,255,255,0.1); border-radius: 1px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s linear; border-radius: 1px; }
+  .mode-btn-grid {
+    background: transparent;
+    color: rgba(245,240,232,0.45);
+    border: 1.5px solid rgba(245,240,232,0.12);
+  }
 
-  /* ── BODY ── */
-  .scroll-body { padding: 0 14px max(20px, env(safe-area-inset-bottom)); }
+  .mode-btn-grid.active {
+    background: rgba(245,240,232,0.1);
+    color: var(--bg);
+    border-color: rgba(245,240,232,0.3);
+  }
 
+  .mode-btn-grid:active { opacity: 0.7; }
+
+  /* ── SCROLLABLE BODY ── */
+  .scroll-body {
+    padding: 0 14px max(20px, env(safe-area-inset-bottom));
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ── HEADER ── */
   header {
     display: flex; align-items: baseline; justify-content: space-between;
     padding: 12px 0 10px; border-bottom: 1px solid var(--rule); margin-bottom: 12px;
@@ -105,24 +162,7 @@
   }
 
   header h1 em { font-style: italic; color: var(--accent); }
-
   #header-sub { font-size: 0.54rem; color: var(--mid); letter-spacing: 0.1em; text-transform: uppercase; }
-
-  /* ── MODE TOGGLE ── */
-  .mode-toggle {
-    display: flex; border: 1.5px solid var(--rule); border-radius: 4px;
-    overflow: hidden; margin-bottom: 12px;
-  }
-
-  .mode-btn {
-    flex: 1; padding: 9px 8px; font-family: 'DM Mono', monospace; font-size: 0.66rem;
-    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; border: none;
-    background: transparent; color: var(--mid); transition: all 0.15s; min-height: 42px;
-  }
-
-  .mode-btn:first-child { border-right: 1.5px solid var(--rule); }
-  .mode-btn.active { background: var(--ink); color: var(--bg); }
-  .mode-btn:not(.active):active { background: var(--rule); }
 
   /* ── TWO-COL ── */
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
@@ -143,68 +183,99 @@
   /* ── SETTINGS ── */
   .settings-heading {
     font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--mid); margin: 12px 0 6px;
+    color: var(--mid); margin: 12px 0 5px;
   }
   .settings-heading:first-child { margin-top: 0; }
 
-  /* coffee quick-tap presets */
+  /* coffee quick presets */
   .coffee-presets { display: flex; gap: 5px; margin-bottom: 6px; }
 
   .preset-btn {
-    flex: 1; padding: 7px 4px; font-family: 'DM Mono', monospace; font-size: 0.66rem;
+    flex: 1; padding: 6px 4px; font-family: 'DM Mono', monospace; font-size: 0.64rem;
     letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
     border: 1px solid var(--rule); border-radius: 3px; background: var(--card);
-    color: var(--mid); transition: all 0.12s; min-height: 36px;
+    color: var(--mid); transition: all 0.12s; min-height: 34px;
   }
 
   .preset-btn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
   .preset-btn:active { opacity: 0.7; }
 
-  /* setting row with drum */
+  /* setting row */
   .setting-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 6px 0; border-bottom: 1px solid var(--rule);
+    padding: 5px 0; border-bottom: 1px solid var(--rule);
   }
 
   .setting-row:first-of-type { border-top: 1px solid var(--rule); }
 
   .setting-label {
-    font-size: 0.57rem; letter-spacing: 0.06em; text-transform: uppercase;
-    color: var(--mid); flex: 1; padding-right: 6px;
+    font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--mid); flex: 1; padding-right: 6px; white-space: nowrap;
   }
 
-  /* ── DRUM ROLLER ── */
-  .drum {
-    position: relative; width: 62px; height: 36px; overflow: hidden;
-    border: 1px solid var(--rule); border-radius: 3px; background: var(--bg);
-    cursor: ns-resize; user-select: none; -webkit-user-select: none; flex-shrink: 0;
+  /* ── HORIZONTAL SWIPE ROLLER ── */
+  .roller-wrap {
+    position: relative;
+    /* width fills available space in setting-row */
+    width: 110px;
+    height: 34px;
+    flex-shrink: 0;
+    cursor: ew-resize;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
-  .drum-fade-t, .drum-fade-b {
-    position: absolute; left: 0; right: 0; height: 10px; pointer-events: none; z-index: 2;
+  /* invisible native select sits on top for tap-to-open */
+  .roller-select {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 10;
+    font-size: 16px; /* prevents iOS zoom */
   }
 
-  .drum-fade-t { top: 0; background: linear-gradient(to bottom, var(--bg), transparent); }
-  .drum-fade-b { bottom: 0; background: linear-gradient(to top, var(--bg), transparent); }
-
-  .drum-sel {
-    position: absolute; left: 4px; right: 4px; top: 50%; transform: translateY(-50%);
-    height: 22px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
-    pointer-events: none; z-index: 1;
+  /* visible track */
+  .roller-track-outer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--bg);
+    pointer-events: none;
   }
 
-  .drum-list {
-    position: absolute; left: 0; right: 0;
-    display: flex; flex-direction: column; align-items: center;
+  .roller-fade-l, .roller-fade-r {
+    position: absolute; top: 0; bottom: 0; width: 18px; pointer-events: none; z-index: 2;
   }
 
-  .drum-item {
-    height: 22px; width: 100%; flex-shrink: 0;
+  .roller-fade-l { left: 0; background: linear-gradient(to right, var(--bg), transparent); }
+  .roller-fade-r { right: 0; background: linear-gradient(to left, var(--bg), transparent); }
+
+  .roller-center-mark {
+    position: absolute; top: 5px; bottom: 5px; left: 50%; transform: translateX(-50%);
+    width: 1px; background: var(--rule); pointer-events: none; z-index: 1;
+  }
+
+  .roller-track {
+    position: absolute; top: 0; bottom: 0;
+    display: flex; align-items: center;
+    will-change: transform;
+  }
+
+  .roller-item {
+    flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--mid);
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    color: var(--mid); line-height: 1;
   }
 
-  .drum-item.sel { color: var(--ink); font-weight: 500; }
+  .roller-item.sel {
+    color: var(--ink); font-weight: 500;
+  }
 
   /* ── STEPS ── */
   .section-label { font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); margin-bottom: 7px; }
@@ -214,7 +285,6 @@
   .step:last-of-type { border-bottom: 1px solid var(--rule); }
 
   .step-header { display: flex; align-items: center; gap: 7px; padding: 9px 0; }
-
   .step-title { flex: 1; font-size: 0.7rem; color: var(--ink); transition: color 0.2s; }
   .step-badge { font-family: 'Playfair Display', serif; font-size: 0.88rem; color: var(--mid); transition: color 0.2s; }
   .step-time-badge { font-size: 0.56rem; color: var(--mid); white-space: nowrap; min-width: 26px; text-align: right; transition: color 0.2s; }
@@ -222,9 +292,7 @@
   .step-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
   .step-body-inner { overflow: hidden; }
   .step-body-pad { padding: 2px 0 11px; }
-
   .step-note { font-size: 0.62rem; color: var(--mid); line-height: 1.55; margin-bottom: 5px; }
-
   .step-target { font-family: 'Playfair Display', serif; font-size: 1.9rem; color: var(--accent); letter-spacing: -0.02em; line-height: 1; }
   .step-target-unit { font-size: 0.62rem; color: var(--mid); margin-left: 3px; font-family: 'DM Mono', monospace; }
 
@@ -243,18 +311,19 @@
 </head>
 <body>
 
+<!-- STICKY TIMER -->
 <div class="timer-block">
-  <div class="timer-top">
-    <div class="timer-left">
+  <div class="timer-inner">
+    <div class="timer-row">
       <div class="timer-display" id="timer">0:00</div>
       <div class="timer-label" id="timer-label">ready</div>
     </div>
-    <div class="timer-right">
-      <div class="controls">
-        <button id="btn-start">Start</button>
-        <button id="btn-reset">Reset</button>
-      </div>
-      <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <div class="timer-grid">
+      <button id="btn-start">Start</button>
+      <button id="btn-reset">Reset</button>
+      <button class="mode-btn-grid active" id="btn-hot" onclick="setMode('hot')">☕ Hot</button>
+      <button class="mode-btn-grid" id="btn-iced" onclick="setMode('iced')">🧊 Iced</button>
     </div>
   </div>
 </div>
@@ -265,14 +334,9 @@
     <p id="header-sub">Recipe &amp; brew timer</p>
   </header>
 
-  <div class="mode-toggle">
-    <button class="mode-btn active" id="btn-hot" onclick="setMode('hot')">☕ Hot</button>
-    <button class="mode-btn" id="btn-iced" onclick="setMode('iced')">🧊 Iced</button>
-  </div>
-
   <div class="two-col">
 
-    <!-- LEFT -->
+    <!-- LEFT: callouts + settings -->
     <div>
       <p class="section-label">Totals</p>
       <div class="callouts">
@@ -290,51 +354,48 @@
         </div>
       </div>
 
-      <p class="settings-heading" style="margin-top:14px;">Recipe</p>
+      <p class="settings-heading" style="margin-top:12px;">Recipe</p>
 
-      <!-- Coffee quick presets -->
       <div class="coffee-presets">
         <button class="preset-btn active" id="preset-20" onclick="setCoffeePreset(20)">20g</button>
         <button class="preset-btn" id="preset-25" onclick="setCoffeePreset(25)">25g</button>
         <button class="preset-btn" id="preset-30" onclick="setCoffeePreset(30)">30g</button>
       </div>
 
-      <!-- Coffee drum -->
       <div class="setting-row" style="border-top:none; padding-top:2px;">
         <span class="setting-label">Coffee</span>
-        <div class="drum" id="drum-coffee"></div>
+        <div class="roller-wrap" id="roller-coffee"></div>
       </div>
 
       <div class="setting-row">
         <span class="setting-label">Ratio 1:</span>
-        <div class="drum" id="drum-ratio"></div>
+        <div class="roller-wrap" id="roller-ratio"></div>
       </div>
 
       <p class="settings-heading">Timing</p>
 
       <div class="setting-row">
         <span class="setting-label">Bloom</span>
-        <div class="drum" id="drum-bloom"></div>
+        <div class="roller-wrap" id="roller-bloom"></div>
       </div>
 
       <div class="setting-row">
         <span class="setting-label">Interval</span>
-        <div class="drum" id="drum-interval"></div>
+        <div class="roller-wrap" id="roller-interval"></div>
       </div>
 
       <div class="setting-row">
         <span class="setting-label">Pours</span>
-        <div class="drum" id="drum-pours"></div>
+        <div class="roller-wrap" id="roller-pours"></div>
       </div>
 
       <div class="setting-row">
         <span class="setting-label">Target</span>
-        <div class="drum" id="drum-brewtotal" style="width:52px;"></div>
+        <div class="roller-wrap" id="roller-brewtotal"></div>
       </div>
-
     </div>
 
-    <!-- RIGHT -->
+    <!-- RIGHT: steps -->
     <div>
       <p class="section-label">Pour sequence</p>
       <div class="steps" id="steps"></div>
@@ -346,18 +407,18 @@
 <script>
   // ── Config ──
   const CONFIGS = {
-    coffee:    { min: 1,   max: 60,  step: 1,   init: 20,  fmt: v => v + 'g' },
-    ratio:     { min: 10,  max: 20,  step: 0.5, init: 15,  fmt: v => Number.isInteger(v) ? v : v.toFixed(1) },
-    bloom:     { min: 20,  max: 60,  step: 1,   init: 30,  fmt: v => v + 's' },
-    interval:  { min: 15,  max: 120, step: 5,   init: 45,  fmt: v => v + 's' },
-    pours:     { min: 1,   max: 6,   step: 1,   init: 3,   fmt: v => String(v) },
-    brewtotal: { min: 180, max: 270, step: 5,   init: 210, fmt: v => Math.floor(v/60)+':'+String(v%60).padStart(2,'0') },
+    coffee:    { min: 1,   max: 60,  step: 1,   init: 20,  fmt: v => v + 'g',    itemW: 38 },
+    ratio:     { min: 10,  max: 20,  step: 0.5, init: 15,  fmt: v => Number.isInteger(v) ? v : v.toFixed(1), itemW: 34 },
+    bloom:     { min: 20,  max: 60,  step: 1,   init: 30,  fmt: v => v + 's',    itemW: 36 },
+    interval:  { min: 15,  max: 120, step: 5,   init: 45,  fmt: v => v + 's',    itemW: 40 },
+    pours:     { min: 1,   max: 6,   step: 1,   init: 3,   fmt: v => String(v),  itemW: 28 },
+    brewtotal: { min: 180, max: 270, step: 5,   init: 210, fmt: v => Math.floor(v/60)+':'+String(v%60).padStart(2,'0'), itemW: 42 },
   };
 
   const state = {};
   Object.keys(CONFIGS).forEach(k => state[k] = CONFIGS[k].init);
 
-  const drums = {};
+  const rollers = {};
 
   let timerInterval = null;
   let elapsed = 0;
@@ -367,100 +428,145 @@
   let mode = 'hot';
   let numSteps = 0;
 
-  // ── Drum roller ──
-  const ITEM_H = 22;
-
+  // ── Roller setup ──
   function buildItems(cfg) {
     const arr = [];
-    for (let v = cfg.min; v <= cfg.max; v = parseFloat((v + cfg.step).toFixed(4))) arr.push(v);
+    for (let v = cfg.min; v <= cfg.max + 0.0001; v = parseFloat((v + cfg.step).toFixed(4))) {
+      if (v <= cfg.max + 0.0001) arr.push(parseFloat(v.toFixed(4)));
+    }
     return arr;
   }
 
-  function setupDrum(key) {
-    const el = document.getElementById('drum-' + key);
-    if (!el) return;
+  function setupRoller(key) {
+    const wrap = document.getElementById('roller-' + key);
+    if (!wrap) return;
     const cfg = CONFIGS[key];
     const items = buildItems(cfg);
+    const W = cfg.itemW;
+    const WRAP_W = 110;
 
-    el.innerHTML =
-      '<div class="drum-fade-t"></div>' +
-      '<div class="drum-sel"></div>' +
-      '<div class="drum-fade-b"></div>' +
-      '<div class="drum-list"></div>';
+    // Build HTML
+    wrap.innerHTML =
+      '<select class="roller-select" id="sel-' + key + '"></select>' +
+      '<div class="roller-track-outer">' +
+        '<div class="roller-fade-l"></div>' +
+        '<div class="roller-center-mark"></div>' +
+        '<div class="roller-fade-r"></div>' +
+        '<div class="roller-track" id="rtrack-' + key + '"></div>' +
+      '</div>';
 
-    const list = el.querySelector('.drum-list');
+    // Populate native select
+    const sel = wrap.querySelector('.roller-select');
+    items.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = cfg.fmt(v);
+      if (Math.abs(v - state[key]) < 0.001) o.selected = true;
+      sel.appendChild(o);
+    });
+
+    // Populate visual track
+    const track = wrap.querySelector('.roller-track');
     items.forEach(v => {
       const d = document.createElement('div');
-      d.className = 'drum-item';
+      d.className = 'roller-item';
+      d.style.width = W + 'px';
       d.textContent = cfg.fmt(v);
-      list.appendChild(d);
+      track.appendChild(d);
     });
 
     let idx = items.findIndex(v => Math.abs(v - state[key]) < 0.001);
     if (idx < 0) idx = 0;
 
     function render(animated) {
-      const offset = -(idx * ITEM_H) + (36 / 2 - ITEM_H / 2);
-      list.style.transition = animated ? 'transform 0.15s ease' : 'none';
-      list.style.transform = 'translateY(' + offset + 'px)';
-      list.querySelectorAll('.drum-item').forEach((d, i) => d.classList.toggle('sel', i === idx));
+      // center selected item
+      const offset = (WRAP_W / 2) - (idx * W) - (W / 2);
+      track.style.transition = animated ? 'transform 0.18s ease' : 'none';
+      track.style.transform = 'translateX(' + offset + 'px)';
+      track.querySelectorAll('.roller-item').forEach((d, i) => d.classList.toggle('sel', i === idx));
       state[key] = items[idx];
-      // sync coffee preset buttons
+      sel.value = items[idx];
       if (key === 'coffee') updateCoffeePresets();
       renderSteps();
     }
 
     render(false);
 
-    let startY = null, startIdx = null, lastY = null, velocity = 0, lastT = null;
+    // drag / swipe
+    let startX = null, startIdx = null, lastX = null, velocity = 0, lastT = null;
 
     function clamp(i) { return Math.max(0, Math.min(items.length - 1, i)); }
 
-    function pointerStart(y) { startY = y; lastY = y; startIdx = idx; velocity = 0; lastT = Date.now(); }
+    function pStart(x) { startX = x; lastX = x; startIdx = idx; velocity = 0; lastT = Date.now(); }
 
-    function pointerMove(y) {
-      if (startY === null) return;
+    function pMove(x) {
+      if (startX === null) return;
       const now = Date.now(), dt = now - lastT || 1;
-      velocity = (lastY - y) / dt;
-      lastY = y; lastT = now;
-      const dy = startY - y;
-      idx = clamp(Math.round(startIdx + dy / ITEM_H));
+      velocity = (x - lastX) / dt;
+      lastX = x; lastT = now;
+      const dx = startX - x;
+      idx = clamp(Math.round(startIdx + dx / W));
       render(false);
     }
 
-    function pointerEnd() {
-      if (startY === null) return;
-      // momentum flick
-      const flick = Math.round(velocity * 80);
+    function pEnd() {
+      if (startX === null) return;
+      const flick = Math.round(-velocity * 100 / W);
       idx = clamp(idx + flick);
       render(true);
-      startY = null;
+      startX = null;
     }
 
-    el.addEventListener('mousedown', e => { pointerStart(e.clientY); e.preventDefault(); });
-    window.addEventListener('mousemove', e => pointerMove(e.clientY));
-    window.addEventListener('mouseup', pointerEnd);
+    // Only attach drag to the visual track outer, not the select overlay
+    const outer = wrap.querySelector('.roller-track-outer');
+    outer.addEventListener('mousedown',  e => { pStart(e.clientX); e.preventDefault(); });
+    window.addEventListener('mousemove', e => { if (startX !== null) pMove(e.clientX); });
+    window.addEventListener('mouseup',   pEnd);
 
-    el.addEventListener('touchstart', e => { pointerStart(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
-    el.addEventListener('touchmove',  e => { pointerMove(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
-    el.addEventListener('touchend',   pointerEnd);
+    outer.addEventListener('touchstart', e => { pStart(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
+    outer.addEventListener('touchmove',  e => { pMove(e.touches[0].clientX); e.preventDefault(); },  { passive: false });
+    outer.addEventListener('touchend',   pEnd);
 
-    el.addEventListener('wheel', e => {
+    outer.addEventListener('wheel', e => {
       idx = clamp(idx + Math.sign(e.deltaY));
       render(true);
       e.preventDefault();
     }, { passive: false });
 
-    drums[key] = { items, getIdx: () => idx, setVal: (v) => {
+    // native select change (tap-to-open on mobile, or desktop change)
+    sel.addEventListener('change', () => {
+      const v = parseFloat(sel.value);
       const i = items.findIndex(x => Math.abs(x - v) < 0.001);
       if (i >= 0) { idx = i; render(true); }
-    }};
+    });
+
+    // prevent drag from triggering select open — select is on top but we only
+    // want it to open on a clean tap (not after a drag). Track movement delta.
+    let tapStartX = null;
+    sel.addEventListener('mousedown', e => { tapStartX = e.clientX; });
+    sel.addEventListener('click', e => {
+      if (tapStartX !== null && Math.abs(e.clientX - tapStartX) > 6) e.preventDefault();
+      tapStartX = null;
+    });
+    sel.addEventListener('touchstart', e => { tapStartX = e.touches[0].clientX; }, { passive: true });
+    sel.addEventListener('touchend', e => {
+      if (tapStartX !== null && Math.abs(e.changedTouches[0].clientX - tapStartX) > 8) {
+        e.preventDefault();
+      }
+      tapStartX = null;
+    }, { passive: false });
+
+    rollers[key] = {
+      items,
+      setVal(v) {
+        const i = items.findIndex(x => Math.abs(x - v) < 0.001);
+        if (i >= 0) { idx = i; render(true); }
+      }
+    };
   }
 
   // ── Coffee presets ──
-  function setCoffeePreset(v) {
-    drums['coffee'].setVal(v);
-  }
+  function setCoffeePreset(v) { rollers['coffee'] && rollers['coffee'].setVal(v); }
 
   function updateCoffeePresets() {
     [20, 25, 30].forEach(v => {
@@ -477,8 +583,7 @@
     document.getElementById('header-sub').textContent = m === 'iced' ? 'Iced brew' : 'Recipe & brew timer';
     document.getElementById('callout-ice').style.display = m === 'iced' ? 'flex' : 'none';
     document.getElementById('callout-main-label').textContent = m === 'iced' ? 'Hot water' : 'Total water';
-    const coffeeVal = m === 'iced' ? 30 : 20;
-    drums['coffee'].setVal(coffeeVal);
+    rollers['coffee'] && rollers['coffee'].setVal(m === 'iced' ? 30 : 20);
     renderSteps();
   }
 
@@ -522,7 +627,6 @@
   function renderSteps() {
     buildCueTimes();
     const v = calc();
-
     document.getElementById('target-display').textContent = fmtTime(state.brewtotal);
     document.getElementById('total-water').textContent = fmt(v.isIced ? v.hotwater : v.water);
     if (v.isIced) document.getElementById('ice-amount').textContent = fmt(v.ice);
@@ -542,8 +646,7 @@
           : 'Pour in slow steady circles.';
 
       const div = document.createElement('div');
-      div.className = 'step';
-      div.id = 'step-' + i;
+      div.className = 'step'; div.id = 'step-' + i;
       div.innerHTML =
         '<div class="step-header">' +
           '<span class="step-title">' + title + '</span>' +
@@ -579,7 +682,7 @@
       const el = document.getElementById('step-' + i);
       if (!el) continue;
       el.classList.remove('active', 'done');
-      if (i === active)    el.classList.add('active');
+      if (i === active) el.classList.add('active');
       else if (i < active) el.classList.add('done');
     }
   }
@@ -594,7 +697,7 @@
     const te = document.getElementById('timer'), le = document.getElementById('timer-label');
     const remaining = totalDuration - elapsed;
     te.textContent = fmtTime(elapsed);
-    document.getElementById('progress').style.width = Math.min((elapsed/totalDuration)*100,100) + '%';
+    document.getElementById('progress').style.width = Math.min((elapsed/totalDuration)*100, 100) + '%';
     applyStepStates(currentActiveStep());
 
     if (elapsed >= totalDuration) {
@@ -632,15 +735,14 @@
     document.getElementById('progress').style.width = '0%';
     for (let i = 0; i < numSteps; i++) {
       const el = document.getElementById('step-' + i);
-      if (el) el.classList.remove('active','done');
+      if (el) el.classList.remove('active', 'done');
     }
   }
 
   document.getElementById('btn-start').addEventListener('click', startStop);
   document.getElementById('btn-reset').addEventListener('click', reset);
 
-  // ── Init ──
-  Object.keys(CONFIGS).forEach(setupDrum);
+  Object.keys(CONFIGS).forEach(setupRoller);
   renderSteps();
 </script>
 </body>
