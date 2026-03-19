@@ -225,18 +225,6 @@
     -webkit-user-select: none;
   }
 
-  /* invisible native select sits on top for tap-to-open */
-  .roller-select {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-    z-index: 10;
-    font-size: 16px; /* prevents iOS zoom */
-  }
-
   /* visible track */
   .roller-track-outer {
     position: absolute;
@@ -245,7 +233,6 @@
     border: 1px solid var(--rule);
     border-radius: 3px;
     background: var(--bg);
-    pointer-events: none;
   }
 
   .roller-fade-l, .roller-fade-r {
@@ -358,7 +345,6 @@
 
       <div class="coffee-presets">
         <button class="preset-btn active" id="preset-20" onclick="setCoffeePreset(20)">20g</button>
-        <button class="preset-btn" id="preset-25" onclick="setCoffeePreset(25)">25g</button>
         <button class="preset-btn" id="preset-30" onclick="setCoffeePreset(30)">30g</button>
       </div>
 
@@ -367,7 +353,12 @@
         <div class="roller-wrap" id="roller-coffee"></div>
       </div>
 
-      <div class="setting-row">
+      <div class="coffee-presets" style="margin-top:6px; margin-bottom:6px;">
+        <button class="preset-btn active" id="preset-r15" onclick="setRatioPreset(15)">1:15</button>
+        <button class="preset-btn" id="preset-r16" onclick="setRatioPreset(16)">1:16</button>
+      </div>
+
+      <div class="setting-row" style="border-top:none; padding-top:2px;">
         <span class="setting-label">Ratio 1:</span>
         <div class="roller-wrap" id="roller-ratio"></div>
       </div>
@@ -410,7 +401,7 @@
     coffee:    { min: 1,   max: 60,  step: 1,   init: 20,  fmt: v => v + 'g',    itemW: 38 },
     ratio:     { min: 10,  max: 20,  step: 0.5, init: 15,  fmt: v => Number.isInteger(v) ? v : v.toFixed(1), itemW: 34 },
     bloom:     { min: 20,  max: 60,  step: 1,   init: 30,  fmt: v => v + 's',    itemW: 36 },
-    interval:  { min: 15,  max: 120, step: 5,   init: 45,  fmt: v => v + 's',    itemW: 40 },
+    interval:  { min: 15,  max: 120, step: 5,   init: 20,  fmt: v => v + 's',    itemW: 40 },
     pours:     { min: 1,   max: 6,   step: 1,   init: 3,   fmt: v => String(v),  itemW: 28 },
     brewtotal: { min: 180, max: 270, step: 5,   init: 210, fmt: v => Math.floor(v/60)+':'+String(v%60).padStart(2,'0'), itemW: 42 },
   };
@@ -445,28 +436,17 @@
     const W = cfg.itemW;
     const WRAP_W = 110;
 
-    // Build HTML
     wrap.innerHTML =
-      '<select class="roller-select" id="sel-' + key + '"></select>' +
-      '<div class="roller-track-outer">' +
+      '<div class="roller-track-outer" id="router-' + key + '">' +
         '<div class="roller-fade-l"></div>' +
         '<div class="roller-center-mark"></div>' +
         '<div class="roller-fade-r"></div>' +
         '<div class="roller-track" id="rtrack-' + key + '"></div>' +
       '</div>';
 
-    // Populate native select
-    const sel = wrap.querySelector('.roller-select');
-    items.forEach(v => {
-      const o = document.createElement('option');
-      o.value = v;
-      o.textContent = cfg.fmt(v);
-      if (Math.abs(v - state[key]) < 0.001) o.selected = true;
-      sel.appendChild(o);
-    });
-
-    // Populate visual track
+    const outer = wrap.querySelector('.roller-track-outer');
     const track = wrap.querySelector('.roller-track');
+
     items.forEach(v => {
       const d = document.createElement('div');
       d.className = 'roller-item';
@@ -479,20 +459,18 @@
     if (idx < 0) idx = 0;
 
     function render(animated) {
-      // center selected item
       const offset = (WRAP_W / 2) - (idx * W) - (W / 2);
       track.style.transition = animated ? 'transform 0.18s ease' : 'none';
       track.style.transform = 'translateX(' + offset + 'px)';
       track.querySelectorAll('.roller-item').forEach((d, i) => d.classList.toggle('sel', i === idx));
       state[key] = items[idx];
-      sel.value = items[idx];
       if (key === 'coffee') updateCoffeePresets();
+      if (key === 'ratio')  updateRatioPresets();
       renderSteps();
     }
 
     render(false);
 
-    // drag / swipe
     let startX = null, startIdx = null, lastX = null, velocity = 0, lastT = null;
 
     function clamp(i) { return Math.max(0, Math.min(items.length - 1, i)); }
@@ -504,21 +482,19 @@
       const now = Date.now(), dt = now - lastT || 1;
       velocity = (x - lastX) / dt;
       lastX = x; lastT = now;
-      const dx = startX - x;
-      idx = clamp(Math.round(startIdx + dx / W));
+      idx = clamp(Math.round(startIdx + (startX - x) / W));
       render(false);
     }
 
     function pEnd() {
       if (startX === null) return;
-      const flick = Math.round(-velocity * 100 / W);
-      idx = clamp(idx + flick);
+      // Reduced momentum: multiplier 30 instead of 100, max 2 steps
+      const flick = Math.round(-velocity * 30 / W);
+      idx = clamp(idx + Math.max(-2, Math.min(2, flick)));
       render(true);
       startX = null;
     }
 
-    // Only attach drag to the visual track outer, not the select overlay
-    const outer = wrap.querySelector('.roller-track-outer');
     outer.addEventListener('mousedown',  e => { pStart(e.clientX); e.preventDefault(); });
     window.addEventListener('mousemove', e => { if (startX !== null) pMove(e.clientX); });
     window.addEventListener('mouseup',   pEnd);
@@ -531,29 +507,6 @@
       idx = clamp(idx + Math.sign(e.deltaY));
       render(true);
       e.preventDefault();
-    }, { passive: false });
-
-    // native select change (tap-to-open on mobile, or desktop change)
-    sel.addEventListener('change', () => {
-      const v = parseFloat(sel.value);
-      const i = items.findIndex(x => Math.abs(x - v) < 0.001);
-      if (i >= 0) { idx = i; render(true); }
-    });
-
-    // prevent drag from triggering select open — select is on top but we only
-    // want it to open on a clean tap (not after a drag). Track movement delta.
-    let tapStartX = null;
-    sel.addEventListener('mousedown', e => { tapStartX = e.clientX; });
-    sel.addEventListener('click', e => {
-      if (tapStartX !== null && Math.abs(e.clientX - tapStartX) > 6) e.preventDefault();
-      tapStartX = null;
-    });
-    sel.addEventListener('touchstart', e => { tapStartX = e.touches[0].clientX; }, { passive: true });
-    sel.addEventListener('touchend', e => {
-      if (tapStartX !== null && Math.abs(e.changedTouches[0].clientX - tapStartX) > 8) {
-        e.preventDefault();
-      }
-      tapStartX = null;
     }, { passive: false });
 
     rollers[key] = {
@@ -569,9 +522,19 @@
   function setCoffeePreset(v) { rollers['coffee'] && rollers['coffee'].setVal(v); }
 
   function updateCoffeePresets() {
-    [20, 25, 30].forEach(v => {
+    [20, 30].forEach(v => {
       const el = document.getElementById('preset-' + v);
       if (el) el.classList.toggle('active', Math.abs(state.coffee - v) < 0.001);
+    });
+  }
+
+  // ── Ratio presets ──
+  function setRatioPreset(v) { rollers['ratio'] && rollers['ratio'].setVal(v); }
+
+  function updateRatioPresets() {
+    [15, 16].forEach(v => {
+      const el = document.getElementById('preset-r' + v);
+      if (el) el.classList.toggle('active', Math.abs(state.ratio - v) < 0.001);
     });
   }
 
