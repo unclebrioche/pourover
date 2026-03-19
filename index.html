@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pour Over</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --ink: #1a1510;
+    --mid: #6b5c4a;
+    --accent: #c0622a;
+    --rule: #d4c9b8;
+    --card: #ede8de;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 48px 24px 80px;
+  }
+
+  header {
+    max-width: 520px;
+    margin: 0 auto 48px;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 24px;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  header h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  header p {
+    margin-top: 10px;
+    font-size: 0.72rem;
+    color: var(--mid);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .main {
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* INPUTS */
+  .inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+    margin-bottom: 36px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 6px;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    border-bottom: 1.5px solid var(--ink);
+    padding-bottom: 4px;
+  }
+
+  .input-row input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: var(--ink);
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+
+  .input-row input::-webkit-outer-spin-button,
+  .input-row input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .input-row span {
+    font-size: 0.7rem;
+    color: var(--mid);
+    white-space: nowrap;
+  }
+
+  /* RECIPE */
+  .recipe-header {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 12px;
+  }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+
+  .step {
+    background: var(--card);
+    border-radius: 4px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: background 0.3s, transform 0.2s;
+    border-left: 3px solid transparent;
+  }
+
+  .step.active {
+    border-left-color: var(--accent);
+    background: #fff;
+    transform: translateX(4px);
+  }
+
+  .step.done {
+    opacity: 0.45;
+  }
+
+  .step-num {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mid);
+    min-width: 40px;
+  }
+
+  .step-desc {
+    flex: 1;
+    font-size: 0.78rem;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  .step-desc strong {
+    font-weight: 400;
+    color: var(--accent);
+    font-size: 1.05rem;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .step-time {
+    font-size: 0.72rem;
+    color: var(--mid);
+    white-space: nowrap;
+  }
+
+  /* TIMER */
+  .timer-section {
+    text-align: center;
+    padding: 32px 0 24px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .timer-display {
+    font-family: 'Playfair Display', serif;
+    font-size: 5rem;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 8px;
+    transition: color 0.3s;
+  }
+
+  .timer-display.cue {
+    color: var(--accent);
+  }
+
+  .timer-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mid);
+    height: 18px;
+    margin-bottom: 28px;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  button {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1.5px solid var(--ink);
+    border-radius: 2px;
+    padding: 10px 24px;
+    transition: all 0.15s;
+  }
+
+  #btn-start {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  #btn-start:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  #btn-reset {
+    background: transparent;
+    color: var(--ink);
+  }
+
+  #btn-reset:hover {
+    background: var(--rule);
+  }
+
+  /* Progress bar */
+  .progress-track {
+    height: 2px;
+    background: var(--rule);
+    border-radius: 1px;
+    margin: 28px 0 0;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 1s linear;
+    border-radius: 1px;
+  }
+
+  /* Total water callout */
+  .callout {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 28px;
+    padding: 16px 18px;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 4px;
+  }
+
+  .callout-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  .callout-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  .callout-unit {
+    font-size: 0.7rem;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Pour <em>Over</em></h1>
+  <p>Recipe &amp; brew timer</p>
+</header>
+
+<div class="main">
+
+  <div class="inputs">
+    <div class="input-group">
+      <label>Coffee</label>
+      <div class="input-row">
+        <input type="number" id="coffee" value="20" min="1" max="100">
+        <span>g</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Ratio (1 :</label>
+      <div class="input-row">
+        <input type="number" id="ratio" value="15" min="1" max="30" step="0.5">
+        <span>water)</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Bloom time</label>
+      <div class="input-row">
+        <input type="number" value="30" disabled style="opacity:0.4;cursor:not-allowed;">
+        <span>s &nbsp;fixed</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Pour interval</label>
+      <div class="input-row">
+        <input type="number" id="interval" value="45" min="15" max="120" step="5">
+        <span>s</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <span class="callout-label">Total water</span>
+    <span class="callout-value" id="total-water">300</span>
+    <span class="callout-unit">g</span>
+  </div>
+
+  <p class="recipe-header">Pour sequence</p>
+  <div class="steps" id="steps"></div>
+
+  <div class="timer-section">
+    <div class="timer-display" id="timer">0:00</div>
+    <div class="timer-label" id="timer-label">ready</div>
+    <div class="controls">
+      <button id="btn-start">Start</button>
+      <button id="btn-reset">Reset</button>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let timerInterval = null;
+  let elapsed = 0;
+  let running = false;
+  let cueTimes = [];
+  let totalDuration = 0;
+
+  function getInterval() {
+    return parseInt(document.getElementById('interval').value) || 45;
+  }
+
+  function buildCueTimes() {
+    const interval = getInterval();
+    // bloom always at 0, then 3 pours each [interval] seconds later
+    cueTimes = [0, 30, 30 + interval, 30 + interval * 2];
+    totalDuration = 30 + interval * 3 + 30; // last pour + 30s drain
+  }
+
+  function calc() {
+    const coffee = parseFloat(document.getElementById('coffee').value) || 20;
+    const r = parseFloat(document.getElementById('ratio').value) || 15;
+    const water = coffee * r;
+    const bloom = coffee * 2;
+    const pour = (water - bloom) / 3;
+    const a = bloom + pour;
+    const b = a + pour;
+    const c = b + pour;
+    return { coffee, r, water, bloom, pour, a, b, c };
+  }
+
+  function fmt(g) {
+    return Number.isInteger(g) ? g : g.toFixed(1);
+  }
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m + ':' + String(sec).padStart(2, '0');
+  }
+
+  function renderSteps() {
+    buildCueTimes();
+    const { water, bloom, a, b, c } = calc();
+    document.getElementById('total-water').textContent = fmt(water);
+
+    const stepData = [
+      { label: 'Step 1', note: 'Bloom — saturate grounds', target: fmt(bloom) },
+      { label: 'Step 2', note: 'First pour → ' + fmt(a) + 'g total', target: fmt(a) },
+      { label: 'Step 3', note: 'Second pour → ' + fmt(b) + 'g total', target: fmt(b) },
+      { label: 'Step 4', note: 'Final pour → ' + fmt(c) + 'g total', target: fmt(c) },
+    ];
+
+    const container = document.getElementById('steps');
+    container.innerHTML = '';
+    stepData.forEach((s, i) => {
+      const div = document.createElement('div');
+      div.className = 'step';
+      div.id = 'step-' + i;
+      div.innerHTML = `
+        <span class="step-num">${s.label}</span>
+        <div class="step-desc">${s.note}<br><strong>${s.target}g</strong></div>
+        <span class="step-time">${formatTime(cueTimes[i])}</span>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function updateTimer() {
+    document.getElementById('timer').textContent = formatTime(elapsed);
+
+    const pct = Math.min((elapsed / totalDuration) * 100, 100);
+    document.getElementById('progress').style.width = pct + '%';
+
+    let activeStep = -1;
+    for (let i = cueTimes.length - 1; i >= 0; i--) {
+      if (elapsed >= cueTimes[i]) { activeStep = i; break; }
+    }
+
+    for (let i = 0; i < 4; i++) {
+      const el = document.getElementById('step-' + i);
+      if (!el) continue;
+      el.classList.remove('active', 'done');
+      if (i === activeStep) el.classList.add('active');
+      else if (i < activeStep) el.classList.add('done');
+    }
+
+    const timerEl = document.getElementById('timer');
+    const labelEl = document.getElementById('timer-label');
+    const isCue = cueTimes.includes(elapsed);
+    if (isCue) {
+      timerEl.classList.add('cue');
+      setTimeout(() => timerEl.classList.remove('cue'), 600);
+      const stepNames = ['Bloom', 'First pour', 'Second pour', 'Final pour'];
+      labelEl.textContent = '→ ' + stepNames[cueTimes.indexOf(elapsed)];
+    } else {
+      labelEl.textContent = running ? 'brewing…' : 'ready';
+    }
+
+    if (elapsed >= totalDuration) {
+      clearInterval(timerInterval);
+      running = false;
+      document.getElementById('btn-start').textContent = 'Done';
+      labelEl.textContent = 'brew complete';
+    }
+  }
+
+  function startStop() {
+    if (elapsed >= totalDuration) return;
+    if (running) {
+      clearInterval(timerInterval);
+      running = false;
+      document.getElementById('btn-start').textContent = 'Resume';
+      document.getElementById('timer-label').textContent = 'paused';
+    } else {
+      running = true;
+      document.getElementById('btn-start').textContent = 'Pause';
+      timerInterval = setInterval(() => {
+        elapsed++;
+        updateTimer();
+      }, 1000);
+    }
+  }
+
+  function reset() {
+    clearInterval(timerInterval);
+    running = false;
+    elapsed = 0;
+    document.getElementById('btn-start').textContent = 'Start';
+    document.getElementById('timer').textContent = '0:00';
+    document.getElementById('timer-label').textContent = 'ready';
+    document.getElementById('progress').style.width = '0%';
+    for (let i = 0; i < 4; i++) {
+      const el = document.getElementById('step-' + i);
+      if (el) el.classList.remove('active', 'done');
+    }
+  }
+
+  document.getElementById('btn-start').addEventListener('click', startStop);
+  document.getElementById('btn-reset').addEventListener('click', reset);
+  ['coffee', 'ratio', 'interval'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      if (running) { reset(); }
+      renderSteps();
+    });
+  });
+
+  renderSteps();
+</script>
+</body>
+</html>
