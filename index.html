@@ -49,8 +49,9 @@
   /* big timer row */
   .timer-row {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
+    gap: 10px;
     margin-bottom: 4px;
   }
 
@@ -66,8 +67,56 @@
 
   .timer-display.cue { color: var(--accent); }
 
-  .timer-label {
-    font-size: 0.58rem;
+  .timer-right-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .timer-step-info {
+    text-align: right;
+    min-height: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+  }
+
+  .tsi-name {
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bg);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .tsi-target {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .tsi-unit {
+    font-size: 0.55rem;
+    color: rgba(245,240,232,0.4);
+    margin-left: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .tsi-next {
+    font-size: 0.52rem;
+    color: rgba(245,240,232,0.35);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: rgba(245,240,232,0.4);
@@ -353,6 +402,163 @@
     font-size: 0.6rem; color: var(--mid); margin-top: 8px; padding: 7px 9px;
     background: var(--card); border-radius: 4px; border-left: 2px solid var(--rule);
   }
+  /* ── FAB ── */
+  .fab {
+    position: fixed;
+    bottom: max(24px, env(safe-area-inset-bottom, 24px));
+    right: 20px;
+    z-index: 200;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--ink);
+    border: 1.5px solid var(--rule);
+    color: var(--bg);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(26,21,16,0.3);
+    transition: transform 0.15s, opacity 0.15s;
+  }
+
+  .fab:active { transform: scale(0.92); }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(26,21,16,0.55);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--bg);
+    width: 100%;
+    max-width: 480px;
+    border-radius: 12px 12px 0 0;
+    padding: 20px 20px max(24px, env(safe-area-inset-bottom, 20px));
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    max-height: 80dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-overlay.open .modal {
+    transform: translateY(0);
+  }
+
+  .modal-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--rule); margin: 0 auto 16px; flex-shrink: 0;
+  }
+
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; flex-shrink: 0;
+  }
+
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 400; letter-spacing: -0.01em;
+  }
+
+  .modal-title em { font-style: italic; color: var(--accent); }
+
+  .modal-close {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--card); border: none; cursor: pointer;
+    font-size: 1rem; color: var(--mid); display: flex;
+    align-items: center; justify-content: center;
+  }
+
+  /* save current row */
+  .modal-save-row {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-shrink: 0;
+  }
+
+  .modal-name-input {
+    flex: 1; padding: 9px 12px;
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    border: 1px solid var(--rule); border-radius: 3px;
+    background: var(--bg); color: var(--ink); outline: none;
+    min-height: 40px;
+  }
+
+  .modal-name-input:focus { border-color: var(--mid); }
+
+  .modal-save-btn {
+    padding: 9px 16px; font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
+    cursor: pointer; border-radius: 3px; min-height: 40px;
+    background: var(--ink); color: var(--bg); border: 1.5px solid var(--ink);
+    white-space: nowrap; transition: opacity 0.15s;
+  }
+
+  .modal-save-btn:active { opacity: 0.75; }
+
+  /* preset list */
+  .modal-list {
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .modal-empty {
+    font-size: 0.7rem; color: var(--mid); text-align: center;
+    padding: 24px 0; opacity: 0.6;
+  }
+
+  .preset-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 12px; background: var(--card); border-radius: 4px;
+    cursor: pointer; transition: background 0.12s;
+  }
+
+  .preset-row:active { background: var(--rule); }
+
+  .preset-row-info { flex: 1; min-width: 0; }
+
+  .preset-row-name {
+    font-size: 0.78rem; color: var(--ink); font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .preset-row-desc {
+    font-size: 0.6rem; color: var(--mid); margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .preset-row-del {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: transparent; border: 1px solid var(--rule);
+    color: var(--mid); font-size: 0.9rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.12s;
+  }
+
+  .preset-row-del:active { background: var(--rule); }
+
+  .modal-divider {
+    font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--mid); margin: 12px 0 6px; flex-shrink: 0;
+    opacity: 0.6;
+  }
 </style>
 </head>
 <body>
@@ -362,9 +568,12 @@
   <div class="timer-inner">
     <div class="timer-row">
       <div class="timer-display" id="timer">0:00</div>
-      <div class="timer-label" id="timer-label">
-        <div class="step-pip" id="step-pip"></div>
-        <span id="timer-label-text">ready</span>
+      <div class="timer-right-info">
+        <div class="timer-step-info" id="timer-step-info"></div>
+        <div class="timer-label" id="timer-label">
+          <div class="step-pip" id="step-pip"></div>
+          <span id="timer-label-text">ready</span>
+        </div>
       </div>
     </div>
     <div class="progress-track" id="progress-track">
@@ -713,6 +922,7 @@
     applyStepStates(currentActiveStep());
     updateProgressMarkers();
     updatePips(currentActiveStep());
+    updateTimerStepInfo(currentActiveStep());
   }
 
   // ── Timer ──
@@ -795,6 +1005,41 @@
     setTimeout(() => { te.classList.remove('cue'); setLabel(running ? 'brewing\u2026' : 'ready', false); }, 900);
   }
 
+  function updateTimerStepInfo(activeStep) {
+    const el = document.getElementById('timer-step-info');
+    if (!el) return;
+
+    if (!running && elapsed === 0) {
+      // pre-brew: show first step coming up
+      const v = calc();
+      el.innerHTML =
+        '<span class="tsi-name">Bloom</span>' +
+        '<span class="tsi-target">' + fmt(v.bloomG) + '<span class="tsi-unit">g</span></span>';
+      return;
+    }
+
+    if (activeStep < 0 || activeStep >= numSteps) { el.innerHTML = ''; return; }
+
+    const v = calc();
+    const name = pourName(activeStep);
+    const target = fmt(v.targets[activeStep]);
+    const isLast = activeStep === numSteps - 1;
+    const unit = activeStep === 0 ? 'g' : (v.isIced && isLast) ? 'g hot' : 'g';
+
+    // next step hint
+    let nextHtml = '';
+    if (activeStep < numSteps - 1) {
+      const nextName = pourName(activeStep + 1);
+      const nextTime = fmtTime(cueTimes[activeStep + 1]);
+      nextHtml = '<span class="tsi-next">next: ' + nextName + ' @ ' + nextTime + '</span>';
+    }
+
+    el.innerHTML =
+      '<span class="tsi-name">' + name + '</span>' +
+      '<span class="tsi-target">' + target + '<span class="tsi-unit">' + unit + '</span></span>' +
+      nextHtml;
+  }
+
   function updateTimer() {
     const te = document.getElementById('timer');
     const remaining = totalDuration - elapsed;
@@ -807,6 +1052,7 @@
     applyStepStates(active);
     updateMarkerStates(active);
     updatePips(active);
+    updateTimerStepInfo(active);
 
     // Hard stop at 5:00
     if (elapsed >= MAX_DURATION) {
@@ -870,6 +1116,7 @@
     document.getElementById('progress').style.width = '0%';
     updateMarkerStates(-1);
     updatePips(-1);
+    updateTimerStepInfo(-1);
     for (let i = 0; i < numSteps; i++) {
       const el = document.getElementById('step-' + i);
       if (el) el.classList.remove('active', 'done');
@@ -879,7 +1126,107 @@
   document.getElementById('btn-start').addEventListener('click', startStop);
   document.getElementById('btn-reset').addEventListener('click', reset);
 
-  loadState();
+  // ── Presets ──
+  const PRESET_KEY = 'pourover_presets';
+
+  function loadPresets() {
+    try { return JSON.parse(localStorage.getItem(PRESET_KEY)) || []; } catch(e) { return []; }
+  }
+
+  function savePresets(list) {
+    try { localStorage.setItem(PRESET_KEY, JSON.stringify(list)); } catch(e) {}
+  }
+
+  function presetDesc(p) {
+    const ratio = Number.isInteger(p.ratio) ? p.ratio : p.ratio.toFixed(1);
+    const t = Math.floor(p.brewtotal/60) + ':' + String(p.brewtotal%60).padStart(2,'0');
+    return (p.mode === 'iced' ? 'Iced · ' : 'Hot · ') +
+      p.coffee + 'g · 1:' + ratio + ' · ' + p.pours + ' pour' + (p.pours !== 1 ? 's' : '') + ' · ' + t;
+  }
+
+  function renderPresetList() {
+    const list = loadPresets();
+    const el = document.getElementById('preset-list');
+    const lbl = document.getElementById('saved-label');
+    el.innerHTML = '';
+    lbl.style.display = list.length ? '' : 'none';
+
+    if (!list.length) {
+      el.innerHTML = '<div class="modal-empty">No saved recipes yet.<br>Dial in your settings and save one.</div>';
+      return;
+    }
+
+    list.forEach((p, i) => {
+      const row = document.createElement('div');
+      row.className = 'preset-row';
+      row.innerHTML =
+        '<div class="preset-row-info">' +
+          '<div class="preset-row-name">' + escHtml(p.name) + '</div>' +
+          '<div class="preset-row-desc">' + escHtml(presetDesc(p)) + '</div>' +
+        '</div>' +
+        '<button class="preset-row-del" title="Delete" onclick="deletePreset(' + i + ');event.stopPropagation();">✕</button>';
+      row.addEventListener('click', () => loadPreset(p));
+      el.appendChild(row);
+    });
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function savePreset() {
+    const input = document.getElementById('preset-name-input');
+    const name = input.value.trim();
+    if (!name) { input.focus(); return; }
+    const list = loadPresets();
+    list.unshift({ name, ...state, mode, savedAt: Date.now() });
+    savePresets(list);
+    input.value = '';
+    renderPresetList();
+  }
+
+  function deletePreset(i) {
+    const list = loadPresets();
+    list.splice(i, 1);
+    savePresets(list);
+    renderPresetList();
+  }
+
+  function loadPreset(p) {
+    Object.keys(CONFIGS).forEach(k => {
+      if (p[k] !== undefined) state[k] = p[k];
+    });
+    if (p.mode) {
+      mode = p.mode;
+      document.getElementById('btn-hot').classList.toggle('active', mode === 'hot');
+      document.getElementById('btn-iced').classList.toggle('active', mode === 'iced');
+      document.getElementById('header-sub').textContent = mode === 'iced' ? 'Iced brew' : 'Recipe & brew timer';
+      document.getElementById('callout-ice').style.display = mode === 'iced' ? 'flex' : 'none';
+      document.getElementById('callout-main-label').textContent = mode === 'iced' ? 'Hot water' : 'Total water';
+    }
+    Object.keys(CONFIGS).forEach(k => rollers[k] && rollers[k].setVal(state[k]));
+    closeModal();
+  }
+
+  function openModal() {
+    renderPresetList();
+    document.getElementById('modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('preset-name-input').focus(), 300);
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  // close on Enter in name input
+  document.getElementById('preset-name-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') savePreset();
+  });
+
   // apply saved mode to UI
   document.getElementById('btn-hot').classList.toggle('active', mode === 'hot');
   document.getElementById('btn-iced').classList.toggle('active', mode === 'iced');
@@ -889,5 +1236,29 @@
   Object.keys(CONFIGS).forEach(setupRoller);
   renderSteps();
 </script>
+<!-- FAB -->
+<button class="fab" id="fab" onclick="openModal()" title="Saved recipes">☰</button>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">Saved <em>recipes</em></span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-save-row">
+      <input class="modal-name-input" id="preset-name-input" type="text"
+        placeholder="Name this recipe…" maxlength="40"
+        autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="modal-save-btn" onclick="savePreset()">Save</button>
+    </div>
+
+    <div class="modal-divider" id="saved-label" style="display:none;">Saved</div>
+    <div class="modal-list" id="preset-list"></div>
+  </div>
+</div>
+
 </body>
 </html>
