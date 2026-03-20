@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#1a1510">
 <title>Pour Over</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a1510'/%3E%3Cpath d='M8 10h14l-2 12H10L8 10z' fill='none' stroke='%23f5f0e8' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M22 13h2a2 2 0 0 1 0 4h-2' fill='none' stroke='%23f5f0e8' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M12 7c0-1 1-1.5 1-2.5' fill='none' stroke='%23c0622a' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M16 7c0-1 1-1.5 1-2.5' fill='none' stroke='%23c0622a' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f5f0e8;
@@ -37,7 +37,6 @@
     background: var(--ink);
     color: var(--bg);
     padding: 14px 16px 12px;
-    /* cap width on desktop, center it */
     width: 100%;
   }
 
@@ -46,7 +45,17 @@
     margin: 0 auto;
   }
 
-  /* big timer row — 6 equal columns, height locked to timer */
+  /* ── IDLE PANEL (compact — shown when not running) ── */
+  .idle-panel {}
+  .brew-panel { display: none; }
+
+  /* ── BREWING MODE — swap panels, hide settings ── */
+  .brewing-mode .idle-panel { display: none; }
+  .brewing-mode .brew-panel { display: block; }
+  .brewing-mode .settings-area { display: none; }
+  .brewing-mode .two-col { grid-template-columns: 1fr; }
+
+  /* ── IDLE: compact timer row (6-col grid) ── */
   .timer-row {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -58,10 +67,10 @@
 
   .timer-display {
     grid-column: 1 / 3;
-    font-family: 'Playfair Display', serif;
+    font-family: 'Crimson Pro', serif;
     font-size: clamp(2.4rem, 11vw, 4rem);
-    font-weight: 400;
-    letter-spacing: -0.04em;
+    font-weight: 300;
+    letter-spacing: -0.03em;
     line-height: 1;
     transition: color 0.25s;
     white-space: nowrap;
@@ -72,7 +81,6 @@
 
   .timer-spacer { grid-column: 3 / 5; }
 
-  /* col 5: name tight above grams, both pinned to top */
   .timer-step-info {
     grid-column: 5 / 6;
     display: flex;
@@ -92,13 +100,15 @@
     font-weight: 500;
     white-space: nowrap;
     line-height: 1.2;
+    font-family: 'DM Mono', monospace;
   }
 
   .tsi-target {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Crimson Pro', serif;
     font-size: clamp(1.4rem, 6vw, 2.2rem);
+    font-weight: 300;
     color: var(--accent);
-    letter-spacing: -0.04em;
+    letter-spacing: -0.03em;
     line-height: 1;
     white-space: nowrap;
   }
@@ -111,7 +121,6 @@
     vertical-align: middle;
   }
 
-  /* col 6: next tight above pips+status, both pinned to bottom */
   .timer-right-info {
     grid-column: 6 / 7;
     display: flex;
@@ -132,6 +141,7 @@
     white-space: normal;
     word-break: break-word;
     margin-bottom: 2px;
+    font-family: 'DM Mono', monospace;
   }
 
   .timer-label {
@@ -144,29 +154,140 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    font-family: 'DM Mono', monospace;
   }
 
   .timer-label.lit { color: var(--accent); }
 
-  .step-pip {
-    display: flex;
-    gap: 3px;
-    align-items: center;
-  }
-
-  .step-pip-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: rgba(245,240,232,0.2);
-    transition: background 0.3s;
-    flex-shrink: 0;
-  }
-
+  .step-pip { display: flex; gap: 3px; align-items: center; }
+  .step-pip-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(245,240,232,0.2); transition: background 0.3s; flex-shrink: 0; }
   .step-pip-dot.done { background: var(--accent); opacity: 0.6; }
   .step-pip-dot.active { background: var(--bg); }
 
-  /* progress bar */
+  /* ── BREW PANEL (B2+5% expanded) ── */
+  .brew-inner { max-width: 480px; margin: 0 auto; }
+
+  .b2-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: flex-end;
+    margin-bottom: 10px;
+  }
+
+  .b2-timer {
+    font-family: 'Crimson Pro', serif;
+    font-size: clamp(3.7rem, 17vw, 6.3rem);
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    transition: color 0.25s;
+  }
+
+  .b2-timer.cue { color: var(--accent); }
+
+  .b2-step-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-bottom: 4px;
+  }
+
+  .b2-step-name {
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.45);
+    line-height: 1.3;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .b2-gram {
+    font-family: 'Crimson Pro', serif;
+    font-size: clamp(2.3rem, 11.5vw, 4.2rem);
+    font-weight: 300;
+    color: var(--accent);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .b2-gram-unit {
+    font-size: 0.6rem;
+    color: rgba(245,240,232,0.3);
+    margin-left: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .b2-sub {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-top: 1px solid rgba(245,240,232,0.07);
+    margin-bottom: 10px;
+  }
+
+  .b2-note {
+    font-size: 0.58rem;
+    color: rgba(245,240,232,0.22);
+    font-style: italic;
+    flex: 1;
+    padding-right: 12px;
+    line-height: 1.5;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .b2-next { text-align: right; flex-shrink: 0; }
+  .b2-next-label {
+    font-size: 0.44rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(245,240,232,0.2); margin-bottom: 2px; font-family: 'DM Mono', monospace;
+  }
+  .b2-next-val {
+    font-size: 0.6rem; color: rgba(245,240,232,0.38);
+    line-height: 1.4; font-family: 'DM Mono', monospace;
+  }
+
+  .b2-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .b2-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 50%;
+  }
+
+  .b2-btns button {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    padding: 10px 8px;
+    min-height: 42px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  #b2-btn-start {
+    background: var(--accent);
+    color: var(--bg);
+    border: 1.5px solid var(--accent);
+  }
+
+  #b2-btn-start:active { opacity: 0.75; }
+
+  #b2-btn-reset {
+    background: transparent;
+    color: rgba(245,240,232,0.5);
+    border: 1.5px solid rgba(245,240,232,0.18);
+  }
+
+  #b2-btn-reset:active { background: rgba(255,255,255,0.07); }
+
+  /* ── PROGRESS BAR ── */
   .progress-track {
     position: relative;
     height: 4px;
@@ -289,7 +410,7 @@
 
   .callout.primary { background: var(--ink); color: var(--bg); }
   .callout-label { font-size: 0.52rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.55; }
-  .callout-value { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 400; letter-spacing: -0.02em; }
+  .callout-value { font-family: 'Crimson Pro', serif; font-size: 1.25rem; font-weight: 300; letter-spacing: -0.02em; }
   .callout-unit { font-size: 0.52rem; opacity: 0.5; margin-left: 2px; }
 
   /* ── SETTINGS ── */
@@ -385,7 +506,7 @@
 
   .step-header { display: flex; align-items: center; gap: 7px; padding: 9px 0; }
   .step-title { flex: 1; font-size: 0.7rem; color: var(--ink); transition: color 0.2s; }
-  .step-badge { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--ink); transition: color 0.2s; letter-spacing: -0.01em; }
+  .step-badge { font-family: 'Crimson Pro', serif; font-size: 1.05rem; font-weight: 300; color: var(--ink); transition: color 0.2s, font-size 0.25s; letter-spacing: -0.01em; }
   .step-time-badge { font-size: 0.65rem; color: var(--mid); white-space: nowrap; min-width: 26px; text-align: right; transition: color 0.2s; font-weight: 500; }
 
   .step-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
@@ -399,6 +520,8 @@
   .step.active .step-badge {
     color: var(--accent);
     font-size: 1.9rem;
+    font-family: 'Crimson Pro', serif;
+    font-weight: 300;
     letter-spacing: -0.03em;
     line-height: 1;
   }
@@ -540,27 +663,62 @@
 <!-- STICKY TIMER -->
 <div class="timer-block">
   <div class="timer-inner">
-    <div class="timer-row">
-      <div class="timer-display" id="timer">0:00</div>
-      <div class="timer-spacer"></div>
-      <div class="timer-step-info" id="timer-step-info"></div>
-      <div class="timer-right-info">
-        <div class="tsi-next" id="tsi-next-line"></div>
-        <div class="timer-label" id="timer-label">
-          <div class="step-pip" id="step-pip"></div>
-          <span id="timer-label-text">ready</span>
+
+    <!-- IDLE PANEL -->
+    <div class="idle-panel">
+      <div class="timer-row">
+        <div class="timer-display" id="timer">0:00</div>
+        <div class="timer-spacer"></div>
+        <div class="timer-step-info" id="timer-step-info"></div>
+        <div class="timer-right-info">
+          <div class="tsi-next" id="tsi-next-line"></div>
+          <div class="timer-label" id="timer-label">
+            <div class="step-pip" id="step-pip"></div>
+            <span id="timer-label-text">ready</span>
+          </div>
+        </div>
+      </div>
+      <div class="progress-track" id="progress-track">
+        <div class="progress-fill" id="progress"></div>
+      </div>
+      <div class="timer-grid">
+        <button id="btn-start">Start</button>
+        <button id="btn-reset">Reset</button>
+        <button class="mode-btn-grid active" id="btn-hot" onclick="setMode('hot')">☕ Hot</button>
+        <button class="mode-btn-grid" id="btn-iced" onclick="setMode('iced')">🧊 Iced</button>
+      </div>
+    </div>
+
+    <!-- BREW PANEL (B2+5%) -->
+    <div class="brew-panel">
+      <div class="brew-inner">
+        <div class="b2-hero">
+          <div class="b2-timer" id="b2-timer">0:00</div>
+          <div class="b2-step-block">
+            <div class="b2-step-name" id="b2-step-name"></div>
+            <div class="b2-gram" id="b2-gram"></div>
+          </div>
+        </div>
+        <div class="b2-sub">
+          <div class="b2-note" id="b2-note"></div>
+          <div class="b2-next">
+            <div class="b2-next-label">Next</div>
+            <div class="b2-next-val" id="b2-next-val"></div>
+          </div>
+        </div>
+        <div class="progress-track" id="b2-progress-track">
+          <div class="progress-fill" id="b2-progress"></div>
+        </div>
+        <div class="b2-foot">
+          <div class="step-pip" id="b2-pip"></div>
+          <div class="b2-btns">
+            <button id="b2-btn-start">Pause</button>
+            <button id="b2-btn-reset">Reset</button>
+          </div>
         </div>
       </div>
     </div>
-    <div class="progress-track" id="progress-track">
-      <div class="progress-fill" id="progress"></div>
-    </div>
-    <div class="timer-grid">
-      <button id="btn-start">Start</button>
-      <button id="btn-reset">Reset</button>
-      <button class="mode-btn-grid active" id="btn-hot" onclick="setMode('hot')">☕ Hot</button>
-      <button class="mode-btn-grid" id="btn-iced" onclick="setMode('iced')">🧊 Iced</button>
-    </div>
+
   </div>
 
   <!-- RECIPE BAR -->
@@ -584,7 +742,7 @@
   <div class="two-col">
 
     <!-- LEFT: callouts + settings -->
-    <div>
+    <div class="settings-area">
       <p class="section-label">Totals</p>
       <div class="callouts">
         <div class="callout primary">
@@ -1085,16 +1243,103 @@
     setLabel(running ? 'brewing\u2026' : 'ready', false);
   }
 
+  function enterBrewMode() {
+    document.querySelector('.timer-block').classList.add('brewing-mode');
+    syncBrewPanel();
+  }
+
+  function exitBrewMode() {
+    document.querySelector('.timer-block').classList.remove('brewing-mode');
+  }
+
+  function syncBrewPanel() {
+    // Mirror the main timer display into the brew panel
+    const active = currentActiveStep();
+    const v = calc();
+
+    // timer number
+    const bt = document.getElementById('b2-timer');
+    if (bt) {
+      bt.textContent = fmtTime(elapsed);
+      bt.classList.toggle('cue', document.getElementById('timer').classList.contains('cue'));
+    }
+
+    // step name + gram
+    const sn = document.getElementById('b2-step-name');
+    const sg = document.getElementById('b2-gram');
+    if (active >= 0 && active < numSteps && sn && sg) {
+      sn.textContent = pourName(active);
+      const target = fmt(v.targets[active]);
+      const isLast = active === numSteps - 1;
+      const unit = active === 0 ? 'g' : (v.isIced && isLast) ? 'g hot' : 'g';
+      sg.innerHTML = target + '<span class="b2-gram-unit">' + unit + '</span>';
+    } else if (sn && sg) {
+      sn.textContent = '';
+      sg.innerHTML = '';
+    }
+
+    // note
+    const noteEl = document.getElementById('b2-note');
+    if (noteEl && active >= 0) {
+      const isLast = active === numSteps - 1;
+      noteEl.textContent = active === 0
+        ? 'Saturate all grounds evenly.'
+        : isLast
+          ? (v.isIced ? 'Complete hot water. Allow full drawdown onto ice.' : 'Complete the brew. Allow full drawdown.')
+          : 'Pour in slow steady circles.';
+    }
+
+    // next step
+    const nv = document.getElementById('b2-next-val');
+    if (nv) {
+      if (active >= 0 && active < numSteps - 1) {
+        nv.textContent = pourName(active + 1) + '\n@ ' + fmtTime(cueTimes[active + 1]);
+        nv.style.whiteSpace = 'pre';
+      } else {
+        nv.textContent = elapsed >= totalDuration
+          ? (mode === 'iced' ? 'stir & serve' : 'allow full drawdown')
+          : '';
+      }
+    }
+
+    // progress
+    const bp = document.getElementById('b2-progress');
+    if (bp) bp.style.width = Math.min((elapsed / MAX_DURATION) * 100, 100) + '%';
+
+    // pips
+    const bpip = document.getElementById('b2-pip');
+    if (bpip) {
+      bpip.innerHTML = '';
+      for (let i = 0; i < numSteps; i++) {
+        const d = document.createElement('div');
+        d.className = 'step-pip-dot';
+        if (i < active) d.classList.add('done');
+        else if (i === active) d.classList.add('active');
+        bpip.appendChild(d);
+      }
+    }
+
+    // brew btn label
+    const bbs = document.getElementById('b2-btn-start');
+    if (bbs) {
+      if (elapsed >= MAX_DURATION) bbs.textContent = 'Done';
+      else bbs.textContent = running ? 'Pause' : 'Resume';
+    }
+  }
+
   function startStop() {
     if (elapsed >= MAX_DURATION) return;
     if (running) {
-      clearInterval(timerInterval); running = false;
+      clearInterval(timerInterval);
+      running = false;
       document.getElementById('btn-start').textContent = 'Resume';
       setLabel('paused', false);
+      exitBrewMode();
     } else {
       running = true;
       document.getElementById('btn-start').textContent = 'Pause';
-      timerInterval = setInterval(() => { elapsed++; updateTimer(); }, 1000);
+      timerInterval = setInterval(() => { elapsed++; updateTimer(); syncBrewPanel(); }, 1000);
+      enterBrewMode();
     }
   }
 
@@ -1112,10 +1357,14 @@
       const el = document.getElementById('step-' + i);
       if (el) el.classList.remove('active', 'done');
     }
+    exitBrewMode();
+    syncBrewPanel();
   }
 
   document.getElementById('btn-start').addEventListener('click', startStop);
   document.getElementById('btn-reset').addEventListener('click', reset);
+  document.getElementById('b2-btn-start').addEventListener('click', startStop);
+  document.getElementById('b2-btn-reset').addEventListener('click', reset);
 
   // ── Presets (chip-based) ──
   const PRESET_KEY = 'pourover_presets';
