@@ -1087,38 +1087,40 @@
 
   const MAX_DURATION = 300; // 5:00 hard stop
 
-  function updateProgressMarkers() {
-    const track = document.getElementById('progress-track');
-    // remove old markers
+  function populateTrack(track, idPrefix) {
+    if (!track) return;
     track.querySelectorAll('.step-marker, .progress-target-line').forEach(el => el.remove());
-
-    // target line at totalDuration position
     const targetPct = (totalDuration / MAX_DURATION) * 100;
     const tl = document.createElement('div');
     tl.className = 'progress-target-line';
     tl.style.left = targetPct + '%';
     track.appendChild(tl);
-
-    // step markers at each cue time (skip step 0 = bloom at 0:00, it's the start)
     cueTimes.forEach((t, i) => {
-      if (i === 0) return; // skip 0s marker, it's the left edge
+      if (i === 0) return;
       const pct = (t / MAX_DURATION) * 100;
       const dot = document.createElement('div');
       dot.className = 'step-marker';
-      dot.id = 'smark-' + i;
+      dot.id = idPrefix + i;
       dot.style.left = pct + '%';
       track.appendChild(dot);
     });
   }
 
+  function updateProgressMarkers() {
+    populateTrack(document.getElementById('progress-track'), 'smark-');
+    populateTrack(document.getElementById('b2-progress-track'), 'b2smark-');
+  }
+
   function updateMarkerStates(activeStep) {
-    cueTimes.forEach((t, i) => {
-      if (i === 0) return;
-      const dot = document.getElementById('smark-' + i);
-      if (!dot) return;
-      dot.classList.remove('reached', 'current');
-      if (i < activeStep)       dot.classList.add('reached');
-      else if (i === activeStep) dot.classList.add('current');
+    ['smark-', 'b2smark-'].forEach(prefix => {
+      cueTimes.forEach((t, i) => {
+        if (i === 0) return;
+        const dot = document.getElementById(prefix + i);
+        if (!dot) return;
+        dot.classList.remove('reached', 'current');
+        if (i < activeStep)        dot.classList.add('reached');
+        else if (i === activeStep) dot.classList.add('current');
+      });
     });
   }
 
