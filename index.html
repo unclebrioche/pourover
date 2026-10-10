@@ -5,1473 +5,566 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#1a1510">
+<meta name="theme-color" content="#f5f0e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17120e" media="(prefers-color-scheme: dark)">
 <title>Pour Over</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a1510'/%3E%3Cpath d='M8 10h14l-2 12H10L8 10z' fill='none' stroke='%23f5f0e8' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M22 13h2a2 2 0 0 1 0 4h-2' fill='none' stroke='%23f5f0e8' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M12 7c0-1 1-1.5 1-2.5' fill='none' stroke='%23c0622a' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M16 7c0-1 1-1.5 1-2.5' fill='none' stroke='%23c0622a' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f5f0e8;
+    --paper: #f5f0e8;
     --ink: #1a1510;
     --mid: #6b5c4a;
+    --faint: #a8997f;
     --accent: #c0622a;
-    --rule: #d4c9b8;
-    --card: #ede8de;
+    --accent-soft: rgba(192, 98, 42, 0.14);
+    --rule: #d9cfbf;
+    --card: #ede7dc;
+    --on-accent: #fbf7f1;
+    --scrim: rgba(26, 21, 16, 0.42);
+    --serif: 'Crimson Pro', Georgia, 'Times New Roman', serif;
+    --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #17120e; --ink: #f1eadf; --mid: #ab9a83; --faint: #6f604f;
+      --accent: #e27c40; --accent-soft: rgba(226, 124, 64, 0.16); --rule: #3a3027; --card: #221b15;
+      --on-accent: #17120e; --scrim: rgba(0, 0, 0, 0.6); color-scheme: dark;
+    }
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'DM Mono', monospace;
-    min-height: 100dvh;
-    overscroll-behavior: none;
-  }
-
-  /* ── STICKY TIMER BLOCK ── */
-  .timer-block {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--ink);
-    color: var(--bg);
-    padding: 14px 16px 12px;
-    width: 100%;
-  }
-
-  .timer-inner {
-    max-width: 480px;
-    margin: 0 auto;
-  }
-
-  /* ── IDLE PANEL (compact — shown when not running) ── */
-  .idle-panel {}
-  .brew-panel { display: none; }
-
-  /* ── BREWING MODE — swap panels, hide settings ── */
-  .brewing-mode .idle-panel { display: none; }
-  .brewing-mode .brew-panel { display: block; }
-  .brewing-mode .settings-area { display: none; }
-  .brewing-mode .two-col { grid-template-columns: 1fr; }
-
-  /* ── IDLE: compact timer row (6-col grid) ── */
-  .timer-row {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    align-items: stretch;
-    margin-bottom: 6px;
-    height: clamp(2.4rem, 11vw, 4rem);
-    overflow: hidden;
-  }
-
-  .timer-display {
-    grid-column: 1 / 3;
-    font-family: 'Crimson Pro', serif;
-    font-size: clamp(2.4rem, 11vw, 4rem);
-    font-weight: 300;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    transition: color 0.25s;
-    white-space: nowrap;
-    align-self: center;
-  }
-
-  .timer-display.cue { color: var(--accent); }
-
-  .timer-spacer { grid-column: 3 / 5; }
-
-  .timer-step-info {
-    grid-column: 5 / 6;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-start;
-    padding-bottom: 1px;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .tsi-name {
-    font-size: 0.56rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(245,240,232,0.5);
-    font-weight: 500;
-    white-space: nowrap;
-    line-height: 1.2;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .tsi-target {
-    font-family: 'Crimson Pro', serif;
-    font-size: clamp(1.4rem, 6vw, 2.2rem);
-    font-weight: 300;
-    color: var(--accent);
-    letter-spacing: -0.03em;
-    line-height: 1;
-    white-space: nowrap;
-  }
-
-  .tsi-unit {
-    font-size: 0.52rem;
-    color: rgba(245,240,232,0.4);
-    margin-left: 2px;
-    font-family: 'DM Mono', monospace;
-    vertical-align: middle;
-  }
-
-  .timer-right-info {
-    grid-column: 6 / 7;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-start;
-    padding-bottom: 1px;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .tsi-next {
-    font-size: 0.5rem;
-    color: rgba(245,240,232,0.32);
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    line-height: 1.3;
-    white-space: normal;
-    word-break: break-word;
-    margin-bottom: 2px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .timer-label {
-    font-size: 0.5rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(245,240,232,0.4);
-    transition: color 0.2s;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .timer-label.lit { color: var(--accent); }
-
-  .step-pip { display: flex; gap: 3px; align-items: center; }
-  .step-pip-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(245,240,232,0.2); transition: background 0.3s; flex-shrink: 0; }
-  .step-pip-dot.done { background: var(--accent); opacity: 0.6; }
-  .step-pip-dot.active { background: var(--bg); }
-
-  /* ── BREW PANEL (B2+5% expanded) ── */
-  .brew-inner { max-width: 480px; margin: 0 auto; }
-
-  .b2-hero {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: flex-end;
-    margin-bottom: 10px;
-  }
-
-  .b2-timer {
-    font-family: 'Crimson Pro', serif;
-    font-size: clamp(3.7rem, 17vw, 6.3rem);
-    font-weight: 300;
-    letter-spacing: -0.04em;
-    line-height: 1;
-    transition: color 0.25s;
-  }
-
-  .b2-timer.cue { color: var(--accent); }
-
-  .b2-step-block {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    padding-bottom: 4px;
-  }
-
-  .b2-step-name {
-    font-size: 0.56rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(245,240,232,0.45);
-    line-height: 1.3;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .b2-gram {
-    font-family: 'Crimson Pro', serif;
-    font-size: clamp(2.3rem, 11.5vw, 4.2rem);
-    font-weight: 300;
-    color: var(--accent);
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
-
-  .b2-gram-unit {
-    font-size: 0.6rem;
-    color: rgba(245,240,232,0.3);
-    margin-left: 2px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .b2-sub {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 8px 0;
-    border-top: 1px solid rgba(245,240,232,0.07);
-    margin-bottom: 10px;
-  }
-
-  .b2-note {
-    font-size: 0.58rem;
-    color: rgba(245,240,232,0.22);
-    font-style: italic;
-    flex: 1;
-    padding-right: 12px;
-    line-height: 1.5;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .b2-next { text-align: right; flex-shrink: 0; }
-  .b2-next-label {
-    font-size: 0.44rem; letter-spacing: 0.1em; text-transform: uppercase;
-    color: rgba(245,240,232,0.2); margin-bottom: 2px; font-family: 'DM Mono', monospace;
-  }
-  .b2-next-val {
-    font-size: 0.6rem; color: rgba(245,240,232,0.38);
-    line-height: 1.4; font-family: 'DM Mono', monospace;
-  }
-
-  .b2-foot {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .b2-btns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    width: 50%;
-  }
-
-  .b2-btns button {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    border-radius: 3px;
-    padding: 10px 8px;
-    min-height: 42px;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  #b2-btn-start {
-    background: var(--accent);
-    color: var(--bg);
-    border: 1.5px solid var(--accent);
-  }
-
-  #b2-btn-start:active { opacity: 0.75; }
-
-  #b2-btn-reset {
-    background: transparent;
-    color: rgba(245,240,232,0.5);
-    border: 1.5px solid rgba(245,240,232,0.18);
-  }
-
-  #b2-btn-reset:active { background: rgba(255,255,255,0.07); }
-
-  /* ── PROGRESS BAR ── */
-  .progress-track {
-    position: relative;
-    height: 4px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 2px;
-    overflow: visible;
-    margin-bottom: 10px;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    width: 0%;
-    transition: width 1s linear;
-    border-radius: 2px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .progress-target-line {
-    position: absolute;
-    top: -3px;
-    width: 2px;
-    height: 10px;
-    background: rgba(245,240,232,0.35);
-    border-radius: 1px;
-    z-index: 2;
-    transform: translateX(-50%);
-  }
-
-  .step-marker {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(245,240,232,0.25);
-    border: 1.5px solid rgba(245,240,232,0.15);
-    z-index: 3;
-    transition: background 0.3s, border-color 0.3s;
-  }
-
-  .step-marker.reached {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-
-  .step-marker.current {
-    background: var(--bg);
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(192,98,42,0.3);
-  }
-
-  /* 2×2 grid: [Start] [Reset] / [Hot] [Iced] */
-  .timer-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 7px;
-  }
-
-  .timer-grid button {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border-radius: 3px;
-    padding: 10px 8px;
-    min-height: 42px;
-    transition: opacity 0.15s, background 0.15s;
-  }
-
-  #btn-start {
-    background: var(--accent);
-    color: var(--bg);
-    border: 1.5px solid var(--accent);
-  }
-
-  #btn-start:active { opacity: 0.75; }
-
-  #btn-reset {
-    background: transparent;
-    color: rgba(245,240,232,0.5);
-    border: 1.5px solid rgba(245,240,232,0.18);
-  }
-
-  #btn-reset:active { background: rgba(255,255,255,0.07); }
-
-  .mode-btn-grid {
-    background: transparent;
-    color: rgba(245,240,232,0.45);
-    border: 1.5px solid rgba(245,240,232,0.12);
-  }
-
-  .mode-btn-grid.active {
-    background: rgba(245,240,232,0.1);
-    color: var(--bg);
-    border-color: rgba(245,240,232,0.3);
-  }
-
-  .mode-btn-grid:active { opacity: 0.7; }
-
-  .scroll-body {
-    padding: 12px 14px max(20px, env(safe-area-inset-bottom));
-    max-width: 480px;
-    margin: 0 auto;
-  }
-
-  /* ── TWO-COL ── */
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
-
-  /* ── CALLOUTS ── */
-  .callouts { display: flex; flex-direction: column; gap: 6px; }
-
-  .callout {
-    display: flex; align-items: baseline; justify-content: space-between;
-    padding: 8px 10px; background: var(--card); border-radius: 4px;
-  }
-
-  .callout.primary { background: var(--ink); color: var(--bg); }
-  .callout-label { font-size: 0.52rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.55; }
-  .callout-value { font-family: 'Crimson Pro', serif; font-size: 1.25rem; font-weight: 300; letter-spacing: -0.02em; }
-  .callout-unit { font-size: 0.52rem; opacity: 0.5; margin-left: 2px; }
-
-  /* ── SETTINGS ── */
-  .settings-heading {
-    font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--mid); margin: 12px 0 5px;
-  }
-  .settings-heading:first-child { margin-top: 0; }
-
-  /* coffee quick presets */
-  .coffee-presets { display: flex; gap: 5px; margin-bottom: 6px; }
-
-  .preset-btn {
-    flex: 1; padding: 6px 4px; font-family: 'DM Mono', monospace; font-size: 0.64rem;
-    letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
-    border: 1px solid var(--rule); border-radius: 3px; background: var(--card);
-    color: var(--mid); transition: all 0.12s; min-height: 34px;
-  }
-
-  .preset-btn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-  .preset-btn:active { opacity: 0.7; }
-
-  /* setting row */
-  .setting-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 5px 0; border-bottom: 1px solid var(--rule);
-  }
-
-  .setting-row:first-of-type { border-top: 1px solid var(--rule); }
-
-  .setting-label {
-    font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase;
-    color: var(--mid); flex: 1; padding-right: 6px; white-space: nowrap;
-  }
-
-  /* ── HORIZONTAL SWIPE ROLLER ── */
-  .roller-wrap {
-    position: relative;
-    /* width fills available space in setting-row */
-    width: 110px;
-    height: 34px;
-    flex-shrink: 0;
-    cursor: ew-resize;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  /* visible track */
-  .roller-track-outer {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    border: 1px solid var(--rule);
-    border-radius: 3px;
-    background: var(--bg);
-  }
-
-  .roller-fade-l, .roller-fade-r {
-    position: absolute; top: 0; bottom: 0; width: 18px; pointer-events: none; z-index: 2;
-  }
-
-  .roller-fade-l { left: 0; background: linear-gradient(to right, var(--bg), transparent); }
-  .roller-fade-r { right: 0; background: linear-gradient(to left, var(--bg), transparent); }
-
-  .roller-center-mark {
-    position: absolute; top: 5px; bottom: 5px; left: 50%; transform: translateX(-50%);
-    width: 1px; background: var(--rule); pointer-events: none; z-index: 1;
-  }
-
-  .roller-track {
-    position: absolute; top: 0; bottom: 0;
-    display: flex; align-items: center;
-    will-change: transform;
-  }
-
-  .roller-item {
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'DM Mono', monospace; font-size: 0.78rem;
-    color: var(--mid); line-height: 1;
-  }
-
-  .roller-item.sel {
-    color: var(--ink); font-weight: 500;
-  }
-
-  /* ── STEPS ── */
-  .section-label { font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); margin-bottom: 7px; }
-
-  .steps { display: flex; flex-direction: column; }
-  .step { border-top: 1px solid var(--rule); }
-  .step:last-of-type { border-bottom: 1px solid var(--rule); }
-
-  .step-header { display: flex; align-items: center; gap: 7px; padding: 9px 0; }
-  .step-title { flex: 1; font-size: 0.7rem; color: var(--ink); transition: color 0.2s; }
-  .step-badge { font-family: 'Crimson Pro', serif; font-size: 1.05rem; font-weight: 300; color: var(--ink); transition: color 0.2s, font-size 0.25s; letter-spacing: -0.01em; }
-  .step-time-badge { font-size: 0.65rem; color: var(--mid); white-space: nowrap; min-width: 26px; text-align: right; transition: color 0.2s; font-weight: 500; }
-
-  .step-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
-  .step-body-inner { overflow: hidden; }
-  .step-body-pad { padding: 2px 0 11px; }
-  .step-note { font-size: 0.62rem; color: var(--mid); line-height: 1.55; }
-
-  .step.active { border-top: 2px solid var(--accent); }
-  .step.active .step-body { grid-template-rows: 1fr; }
-  .step.active .step-title { font-weight: 500; }
-  .step.active .step-badge {
-    color: var(--accent);
-    font-size: 1.9rem;
-    font-family: 'Crimson Pro', serif;
-    font-weight: 300;
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
-  .step.active .step-time-badge { color: var(--accent); }
-  .step.done .step-title, .step.done .step-badge, .step.done .step-time-badge { opacity: 0.28; }
-
-  .ice-note {
-    font-size: 0.6rem; color: var(--mid); margin-top: 8px; padding: 7px 9px;
-    background: var(--card); border-radius: 4px; border-left: 2px solid var(--rule);
-  }
-  /* ── RECIPE BAR (bottom of timer block) ── */
-  .recipe-bar {
-    border-top: 1px solid rgba(245,240,232,0.08);
-    margin-top: 10px;
-    padding: 7px 0 0;
-  }
-
-  .recipe-bar-label {
-    font-size: 0.48rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(245,240,232,0.28);
-    margin-bottom: 5px;
-  }
-
-  .chip-strip {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding-bottom: 10px;
-  }
-  .chip-strip::-webkit-scrollbar { display: none; }
-
-  .recipe-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
-    border-radius: 20px;
-    border: 1px solid rgba(245,240,232,0.12);
-    background: rgba(245,240,232,0.05);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.12s;
-    flex-shrink: 0;
-    min-height: 26px;
-  }
-
-  .recipe-chip:active { background: rgba(245,240,232,0.12); }
-
-  .recipe-chip.active {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-
-  .chip-name {
-    font-size: 0.56rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: rgba(245,240,232,0.5);
-    transition: color 0.12s;
-  }
-
-  .recipe-chip.active .chip-name { color: var(--bg); }
-
-  .chip-del {
-    font-size: 0.48rem;
-    color: rgba(245,240,232,0.3);
-    margin-left: 1px;
-    line-height: 1;
-    padding: 0 1px;
-    transition: color 0.12s;
-  }
-
-  .recipe-chip.active .chip-del { color: rgba(245,240,232,0.6); }
-
-  .chip-add {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 4px 8px;
-    border-radius: 20px;
-    border: 1px dashed rgba(245,240,232,0.15);
-    background: transparent;
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0;
-    min-height: 26px;
-    transition: all 0.12s;
-  }
-
-  .chip-add:active { background: rgba(245,240,232,0.07); }
-
-  .chip-add-label {
-    font-size: 0.54rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: rgba(245,240,232,0.3);
-  }
-
-  .chip-save-row {
-    display: flex; gap: 7px;
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.22s ease, padding 0.22s ease;
-    padding: 0;
-  }
-
-  .chip-save-row.open {
-    max-height: 50px;
-    padding-bottom: 10px;
-  }
-
-  .chip-input {
-    flex: 1; padding: 7px 10px;
-    font-family: 'DM Mono', monospace; font-size: 0.72rem;
-    border: 1px solid rgba(245,240,232,0.18); border-radius: 3px;
-    background: rgba(245,240,232,0.07); color: var(--bg); outline: none;
-    min-height: 34px;
-  }
-
-  .chip-input::placeholder { color: rgba(245,240,232,0.22); }
-  .chip-input:focus { border-color: rgba(245,240,232,0.35); }
-
-  .chip-confirm {
-    padding: 7px 14px; font-family: 'DM Mono', monospace;
-    font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
-    cursor: pointer; border-radius: 3px; min-height: 34px;
-    background: var(--accent); color: var(--bg); border: 1.5px solid var(--accent);
-    white-space: nowrap;
-  }
+  [hidden] { display: none !important; }
+  html, body { background: var(--paper); }
+  body { color: var(--ink); font-family: var(--mono); min-height: 100dvh; overscroll-behavior: none; }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .app {
+    position: relative; max-width: 480px; margin: 0 auto; min-height: 100dvh;
+    display: flex; flex-direction: column;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* ── TOP: recipe line + sound ── */
+  .topline { display: flex; align-items: center; gap: 8px; padding: 14px 18px 8px; }
+  .recipe-btn {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; text-align: left;
+    background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 9px 12px;
+  }
+  .recipe-btn:disabled { cursor: default; background: transparent; border-color: transparent; padding-inline: 2px; }
+  .recipe-btn:disabled .chev { display: none; }
+  .recipe-txt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+  .recipe-name { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); }
+  .recipe-name em { font-style: normal; color: var(--accent); }
+  .recipe-sum { font-size: 0.74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chev { color: var(--faint); flex-shrink: 0; }
+  .icon-btn {
+    width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px; border: 1px solid var(--rule);
+    background: var(--card); display: grid; place-items: center; color: var(--mid);
+  }
+  .icon-btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+
+  /* Saved recipes row */
+  .quick { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 0 18px 4px; }
+  .quick::-webkit-scrollbar { display: none; }
+  .quick button {
+    flex-shrink: 0; display: grid; gap: 1px; text-align: left; border: 1px solid var(--rule); background: transparent;
+    border-radius: 12px; padding: 7px 12px;
+  }
+  .quick b { font-weight: 400; font-size: 0.7rem; }
+  .quick span { font-size: 0.56rem; color: var(--mid); }
+  .quick button.on { background: var(--ink); border-color: var(--ink); }
+  .quick button.on b { color: var(--paper); }
+  .quick button.on span { color: var(--faint); }
+  .awake { font-size: 0.56rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); padding: 4px 18px 0; min-height: 18px; }
+
+  /* ── MAIN ── */
+  .screen { flex: 1; display: flex; flex-direction: column; padding: 2px 18px 0; }
+
+  .hero { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px; padding: 6px 0 14px; }
+  .h-label { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid); }
+  .h-grams { font-family: var(--serif); font-weight: 300; font-size: clamp(4.4rem, 21vw, 5.6rem); line-height: 0.9; letter-spacing: -0.045em; color: var(--accent); font-variant-numeric: tabular-nums; transition: font-size 0.35s, transform 0.3s; }
+  .h-grams small { font-family: var(--mono); font-size: 0.85rem; letter-spacing: 0; color: var(--mid); margin-left: 4px; }
+  .h-step { font-size: 0.74rem; margin-top: 6px; }
+  .h-right { text-align: right; }
+  .h-time { font-family: var(--serif); font-weight: 300; font-size: 2.6rem; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; transition: font-size 0.35s; }
+  .h-next { font-size: 0.64rem; color: var(--mid); margin-top: 6px; line-height: 1.45; }
+  .h-next b { color: var(--ink); font-weight: 500; }
+  .cue .h-grams { transform: scale(1.06); }
+
+  /* While brewing: grams and time take over */
+  .brewing .hero { grid-template-columns: 1fr; gap: 4px; padding-top: 14px; }
+  .brewing .h-grams { font-size: clamp(6rem, 30vw, 8rem); }
+  .brewing .h-right { text-align: left; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; border-top: 1px solid var(--rule); padding-top: 10px; margin-top: 8px; }
+  .brewing .h-time { font-size: clamp(3.2rem, 15vw, 4rem); }
+  .brewing .h-next { font-size: 0.72rem; text-align: right; }
+  .brewing .row:not(.active) { padding-block: 8px; }
+  .brewing .row:not(.active) .r-g { font-size: 1.1rem; }
+
+  .segbar { display: flex; gap: 3px; height: 6px; margin-bottom: 6px; }
+  .segbar span { flex: var(--w) 0 0; background: var(--rule); border-radius: 3px; overflow: hidden; }
+  .segbar i { display: block; height: 100%; background: var(--accent); width: 0; }
+  .segscale { display: flex; justify-content: space-between; font-size: 0.56rem; color: var(--faint); margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+
+  .steps { list-style: none; border-top: 1px solid var(--rule); }
+  .row { display: grid; grid-template-columns: 40px 1fr auto; align-items: baseline; gap: 10px; padding: 12px 2px; border-bottom: 1px solid var(--rule); position: relative; }
+  .r-time { font-size: 0.68rem; color: var(--mid); font-variant-numeric: tabular-nums; }
+  .r-name { font-size: 0.76rem; }
+  .r-note { grid-column: 2 / 4; font-size: 0.62rem; color: var(--mid); line-height: 1.5; margin-top: -4px; padding-bottom: 4px; }
+  .r-g { font-family: var(--serif); font-size: 1.35rem; font-weight: 300; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .r-g small { font-family: var(--mono); font-size: 0.56rem; color: var(--mid); margin-left: 2px; }
+  .row.done { opacity: 0.38; }
+  .row.done .r-time::before { content: '✓ '; color: var(--accent); }
+  .row.active { background: var(--accent-soft); margin: 0 -10px; padding-inline: 12px; border-radius: 10px; border-bottom-color: transparent; }
+  .row.active .r-name { font-weight: 500; }
+  .row.active .r-time, .row.active .r-g { color: var(--accent); }
+  .row .r-bar { position: absolute; left: 12px; right: 12px; bottom: 5px; height: 2px; background: var(--rule); border-radius: 1px; overflow: hidden; }
+  .row .r-bar i { display: block; height: 100%; background: var(--accent); }
+  .row.prep .r-time { color: var(--faint); }
+
+  /* ── BOTTOM BAR ── */
+  .bar {
+    position: sticky; bottom: 0; display: flex; gap: 10px; margin-top: auto;
+    padding: 14px 18px max(20px, env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--paper) 70%, transparent);
+  }
+  .go { flex: 1; height: 60px; border-radius: 18px; border: 0; background: var(--accent); color: var(--on-accent); font-size: 0.86rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; }
+  .go.paused { background: var(--ink); color: var(--paper); }
+  .go:active { transform: scale(0.98); }
+  .reset { width: 60px; height: 60px; border-radius: 18px; border: 1px solid var(--rule); background: var(--card); color: var(--mid); display: grid; place-items: center; }
+
+  .toast {
+    position: fixed; left: 50%; transform: translateX(-50%); width: min(444px, calc(100% - 36px));
+    top: calc(env(safe-area-inset-top, 0px) + 70px); z-index: 5; background: var(--ink); color: var(--paper);
+    border-radius: 14px; padding: 12px 14px; font-size: 0.7rem; line-height: 1.5; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.4);
+  }
+  .toast b { color: var(--accent); font-weight: 500; }
+
+  /* ── RECIPE SHEET ── */
+  .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 8; }
+  .sheet {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; width: 100%; max-width: 480px; z-index: 9;
+    background: var(--paper); border-radius: 22px 22px 0 0; padding: 10px 18px max(20px, env(safe-area-inset-bottom));
+    max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 -10px 40px -20px rgba(0,0,0,0.5);
+  }
+  .grab { width: 38px; height: 5px; border-radius: 3px; background: var(--rule); margin: 0 auto 10px; }
+  .sheet-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .sheet h2 { font-family: var(--serif); font-weight: 400; font-size: 1.4rem; letter-spacing: -0.01em; }
+  .link { border: 0; background: none; font-size: 0.74rem; color: var(--accent); padding: 6px 0; }
+  .sec { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid); margin: 16px 0 8px; }
+  .rlist { display: grid; border-top: 1px solid var(--rule); }
+  .ritem { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; padding: 10px 2px; border: 0; border-bottom: 1px solid var(--rule); text-align: left; background: none; width: 100%; }
+  .ritem .tick { color: var(--accent); font-size: 0.8rem; }
+  .ritem b { display: block; font-weight: 400; font-size: 0.74rem; }
+  .ritem small { font-size: 0.58rem; color: var(--mid); }
+  .ritem .mode { font-size: 0.56rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); border: 1px solid var(--rule); border-radius: 999px; padding: 3px 7px; }
+  .full-seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 3px; }
+  .full-seg button { border: 0; background: transparent; border-radius: 9px; padding: 10px; font-size: 0.72rem; color: var(--mid); }
+  .full-seg button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+  .stepper { display: grid; grid-template-columns: 1fr 44px 70px 44px; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+  .stepper:first-child { border-top: 1px solid var(--rule); }
+  .s-lab { font-size: 0.7rem; }
+  .s-lab small { display: block; font-size: 0.56rem; color: var(--mid); margin-top: 1px; }
+  .s-val { text-align: center; font-family: var(--serif); font-size: 1.35rem; font-weight: 300; font-variant-numeric: tabular-nums; }
+  .s-btn { height: 40px; border-radius: 10px; border: 1px solid var(--rule); background: var(--card); font-size: 1.1rem; color: var(--ink); touch-action: manipulation; }
+  .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 6px; margin-top: 14px; }
+  .tot { background: var(--card); border-radius: 10px; padding: 8px 10px; }
+  .tot span { display: block; font-size: 0.54rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); }
+  .tot b { font-family: var(--serif); font-weight: 300; font-size: 1.3rem; }
+  .save-box { margin-top: 16px; display: grid; gap: 8px; }
+  .save-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn { height: 46px; border-radius: 12px; border: 1px solid var(--rule); background: var(--card); font-size: 0.7rem; }
+  .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn.danger { color: var(--accent); background: transparent; }
+  .name-input { height: 46px; border-radius: 12px; border: 1px solid var(--rule); background: var(--card); padding: 0 12px; font-size: 16px; width: 100%; }
+  .hint { font-size: 0.6rem; color: var(--mid); line-height: 1.5; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 
-<!-- STICKY TIMER -->
-<div class="timer-block">
-  <div class="timer-inner">
-
-    <!-- IDLE PANEL -->
-    <div class="idle-panel">
-      <div class="timer-row">
-        <div class="timer-display" id="timer">0:00</div>
-        <div class="timer-spacer"></div>
-        <div class="timer-step-info" id="timer-step-info"></div>
-        <div class="timer-right-info">
-          <div class="tsi-next" id="tsi-next-line"></div>
-          <div class="timer-label" id="timer-label">
-            <div class="step-pip" id="step-pip"></div>
-            <span id="timer-label-text">ready</span>
-          </div>
-        </div>
-      </div>
-      <div class="progress-track" id="progress-track">
-        <div class="progress-fill" id="progress"></div>
-      </div>
-      <div class="timer-grid">
-        <button id="btn-start">Start</button>
-        <button id="btn-reset">Reset</button>
-        <button class="mode-btn-grid active" id="btn-hot" onclick="setMode('hot')">☕ Hot</button>
-        <button class="mode-btn-grid" id="btn-iced" onclick="setMode('iced')">🧊 Iced</button>
-      </div>
-    </div>
-
-    <!-- BREW PANEL (B2+5%) -->
-    <div class="brew-panel">
-      <div class="brew-inner">
-        <div class="b2-hero">
-          <div class="b2-timer" id="b2-timer">0:00</div>
-          <div class="b2-step-block">
-            <div class="b2-step-name" id="b2-step-name"></div>
-            <div class="b2-gram" id="b2-gram"></div>
-          </div>
-        </div>
-        <div class="b2-sub">
-          <div class="b2-note" id="b2-note"></div>
-          <div class="b2-next">
-            <div class="b2-next-label">Next</div>
-            <div class="b2-next-val" id="b2-next-val"></div>
-          </div>
-        </div>
-        <div class="progress-track" id="b2-progress-track">
-          <div class="progress-fill" id="b2-progress"></div>
-        </div>
-        <div class="b2-foot">
-          <div class="step-pip" id="b2-pip"></div>
-          <div class="b2-btns">
-            <button id="b2-btn-start">Pause</button>
-            <button id="b2-btn-reset">Reset</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
+<div class="app" id="app">
+  <div class="topline">
+    <button class="recipe-btn" id="recipe-btn" aria-label="Edit recipes">
+      <span class="recipe-txt">
+        <span class="recipe-name" id="recipe-name"></span>
+        <span class="recipe-sum" id="recipe-sum"></span>
+      </span>
+      <svg class="chev" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="icon-btn" id="sound-btn" aria-pressed="false" aria-label="Sound cues">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3a4.5 4.5 0 0 0-4.5 4.5V11L4 13.5h12L14.5 11V7.5A4.5 4.5 0 0 0 10 3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8.2 16a1.9 1.9 0 0 0 3.6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
   </div>
+  <div class="quick" id="quick" aria-label="Saved recipes"></div>
+  <div class="awake" id="awake"></div>
 
-  <!-- RECIPE BAR -->
-  <div class="recipe-bar">
-    <div style="max-width:480px;margin:0 auto;">
-      <div class="recipe-bar-label">My recipes</div>
-      <div class="chip-strip" id="chip-strip">
-        <button class="chip-add" id="chip-add" onclick="toggleChipSave()">
-          <span class="chip-add-label">+ save</span>
-        </button>
-      </div>
-      <div class="chip-save-row" id="chip-save-row">
-        <input class="chip-input" id="chip-input" type="text" placeholder="Name this recipe…" maxlength="40" autocomplete="off" autocorrect="off" spellcheck="false">
-        <button class="chip-confirm" onclick="saveChipPreset()">Save</button>
-      </div>
-    </div>
+  <div class="screen" id="screen"></div>
+
+  <div class="bar">
+    <button class="reset" id="reset" aria-label="Reset" hidden>
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M5 11a6 6 0 1 0 1.8-4.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 4v3.5h3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="go" id="go">Start</button>
   </div>
 </div>
 
-<div class="scroll-body">
-  <div class="two-col">
+<div class="toast" id="toast" hidden></div>
 
-    <!-- LEFT: callouts + settings -->
-    <div class="settings-area">
-      <p class="section-label">Totals</p>
-      <div class="callouts">
-        <div class="callout primary">
-          <span class="callout-label" id="callout-main-label">Total water</span>
-          <span><span class="callout-value" id="total-water">300</span><span class="callout-unit">g</span></span>
-        </div>
-        <div class="callout" id="callout-ice" style="display:none;">
-          <span class="callout-label">Ice</span>
-          <span><span class="callout-value" id="ice-amount">—</span><span class="callout-unit">g</span></span>
-        </div>
-        <div class="callout">
-          <span class="callout-label">Target</span>
-          <span class="callout-value" id="target-display">3:30</span>
-        </div>
-      </div>
-
-      <p class="settings-heading" style="margin-top:12px;">Recipe</p>
-
-      <div class="coffee-presets">
-        <button class="preset-btn active" id="preset-20" onclick="setCoffeePreset(20)">20g</button>
-        <button class="preset-btn" id="preset-30" onclick="setCoffeePreset(30)">30g</button>
-      </div>
-
-      <div class="setting-row" style="border-top:none; padding-top:2px;">
-        <span class="setting-label">Coffee</span>
-        <div class="roller-wrap" id="roller-coffee"></div>
-      </div>
-
-      <div class="coffee-presets" style="margin-top:6px; margin-bottom:6px;">
-        <button class="preset-btn active" id="preset-r15" onclick="setRatioPreset(15)">1:15</button>
-        <button class="preset-btn" id="preset-r16" onclick="setRatioPreset(16)">1:16</button>
-      </div>
-
-      <div class="setting-row" style="border-top:none; padding-top:2px;">
-        <span class="setting-label">Ratio 1:</span>
-        <div class="roller-wrap" id="roller-ratio"></div>
-      </div>
-
-      <p class="settings-heading">Timing</p>
-
-      <div class="setting-row">
-        <span class="setting-label">Bloom</span>
-        <div class="roller-wrap" id="roller-bloom"></div>
-      </div>
-
-      <div class="setting-row">
-        <span class="setting-label">Interval</span>
-        <div class="roller-wrap" id="roller-interval"></div>
-      </div>
-
-      <div class="setting-row">
-        <span class="setting-label">Pours</span>
-        <div class="roller-wrap" id="roller-pours"></div>
-      </div>
-
-      <div class="setting-row">
-        <span class="setting-label">Target</span>
-        <div class="roller-wrap" id="roller-brewtotal"></div>
-      </div>
-    </div>
-
-    <!-- RIGHT: steps -->
-    <div>
-      <p class="section-label">Pour sequence</p>
-      <div class="steps" id="steps"></div>
-    </div>
-
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Recipes" hidden>
+  <div class="grab"></div>
+  <div class="sheet-head"><h2>Recipes</h2><button class="link" id="sheet-done">Done</button></div>
+  <div class="rlist" id="rlist"></div>
+  <p class="sec" id="edit-title">Edit</p>
+  <div class="full-seg" role="group" aria-label="Hot or iced">
+    <button id="m-hot" aria-pressed="true">Hot</button>
+    <button id="m-iced" aria-pressed="false">Iced</button>
   </div>
+  <p class="sec">Dose</p>
+  <div id="dose-steppers"></div>
+  <p class="sec">Timing</p>
+  <div id="time-steppers"></div>
+  <div class="totals" id="totals"></div>
+  <div class="save-box" id="save-box"></div>
 </div>
 
 <script>
-  // ── Config ──
-  const CONFIGS = {
-    coffee:    { min: 1,   max: 60,  step: 1,   init: 20,  fmt: v => v + 'g',    itemW: 38 },
-    ratio:     { min: 10,  max: 20,  step: 0.5, init: 15,  fmt: v => Number.isInteger(v) ? v : v.toFixed(1), itemW: 34 },
-    bloom:     { min: 20,  max: 60,  step: 1,   init: 30,  fmt: v => v + 's',    itemW: 36 },
-    interval:  { min: 15,  max: 120, step: 5,   init: 20,  fmt: v => v + 's',    itemW: 40 },
-    pours:     { min: 1,   max: 6,   step: 1,   init: 3,   fmt: v => String(v),  itemW: 28 },
-    brewtotal: { min: 180, max: 270, step: 5,   init: 210, fmt: v => Math.floor(v/60)+':'+String(v%60).padStart(2,'0'), itemW: 42 },
+(() => {
+  const MAX = 300; // 5:00 hard stop
+  const KEY = 'pourover_v2';
+  const $ = id => document.getElementById(id);
+  const FIELDS = ['coffee', 'ratio', 'bloom', 'interval', 'pours', 'target', 'mode'];
+
+  const LIMITS = {
+    coffee:   { min: 1,   max: 60,  step: 1,   lab: 'Coffee', unit: 'g' },
+    ratio:    { min: 10,  max: 20,  step: 0.5, lab: 'Ratio', sub: 'grams of water per gram of coffee' },
+    bloom:    { min: 20,  max: 60,  step: 5,   lab: 'Bloom', unit: 's' },
+    interval: { min: 15,  max: 120, step: 5,   lab: 'Between pours', unit: 's' },
+    pours:    { min: 1,   max: 6,   step: 1,   lab: 'Pours', sub: 'after the bloom' },
+    target:   { min: 180, max: 270, step: 5,   lab: 'Target time' },
   };
 
-  const state = {};
-  Object.keys(CONFIGS).forEach(k => state[k] = CONFIGS[k].init);
+  // ── State ──
+  let recipes = [];
+  const R = { coffee: 20, ratio: 15, bloom: 30, interval: 20, pours: 3, target: 210, mode: 'hot', recipeId: null };
+  // Timer is derived from the clock so it stays correct when Safari pauses the page.
+  const T = { base: 0, startedAt: null };
+  let sound = false, naming = false, confirmDel = false;
+  let wakeLock = null, wakeOn = false;
+  let audio = null, audioKey = '', hiddenAt = null, lastStep = -2, cueUntil = 0;
 
-  const rollers = {};
-
-  let timerInterval = null;
-  let elapsed = 0;
-  let running = false;
-  let cueTimes = [];
-  let totalDuration = 0;
-  let mode = 'hot';
-  let numSteps = 0;
-
-  // ── Roller setup ──
-  function buildItems(cfg) {
-    const arr = [];
-    for (let v = cfg.min; v <= cfg.max + 0.0001; v = parseFloat((v + cfg.step).toFixed(4))) {
-      if (v <= cfg.max + 0.0001) arr.push(parseFloat(v.toFixed(4)));
-    }
-    return arr;
-  }
-
-  function setupRoller(key) {
-    const wrap = document.getElementById('roller-' + key);
-    if (!wrap) return;
-    const cfg = CONFIGS[key];
-    const items = buildItems(cfg);
-    const W = cfg.itemW;
-    const WRAP_W = 110;
-
-    wrap.innerHTML =
-      '<div class="roller-track-outer" id="router-' + key + '">' +
-        '<div class="roller-fade-l"></div>' +
-        '<div class="roller-center-mark"></div>' +
-        '<div class="roller-fade-r"></div>' +
-        '<div class="roller-track" id="rtrack-' + key + '"></div>' +
-      '</div>';
-
-    const outer = wrap.querySelector('.roller-track-outer');
-    const track = wrap.querySelector('.roller-track');
-
-    items.forEach(v => {
-      const d = document.createElement('div');
-      d.className = 'roller-item';
-      d.style.width = W + 'px';
-      d.textContent = cfg.fmt(v);
-      track.appendChild(d);
-    });
-
-    let idx = items.findIndex(v => Math.abs(v - state[key]) < 0.001);
-    if (idx < 0) idx = 0;
-
-    function render(animated) {
-      const offset = (WRAP_W / 2) - (idx * W) - (W / 2);
-      track.style.transition = animated ? 'transform 0.18s ease' : 'none';
-      track.style.transform = 'translateX(' + offset + 'px)';
-      track.querySelectorAll('.roller-item').forEach((d, i) => d.classList.toggle('sel', i === idx));
-      state[key] = items[idx];
-      if (key === 'coffee') updateCoffeePresets();
-      if (key === 'ratio')  updateRatioPresets();
-      renderSteps();
-    }
-
-    render(false);
-
-    let startX = null, startIdx = null, lastX = null, velocity = 0, lastT = null;
-
-    function clamp(i) { return Math.max(0, Math.min(items.length - 1, i)); }
-
-    function pStart(x) { startX = x; lastX = x; startIdx = idx; velocity = 0; lastT = Date.now(); }
-
-    function pMove(x) {
-      if (startX === null) return;
-      const now = Date.now(), dt = now - lastT || 1;
-      velocity = (x - lastX) / dt;
-      lastX = x; lastT = now;
-      idx = clamp(Math.round(startIdx + (startX - x) / W));
-      render(false);
-    }
-
-    function pEnd() {
-      if (startX === null) return;
-      // Reduced momentum: multiplier 30 instead of 100, max 2 steps
-      const flick = Math.round(-velocity * 30 / W);
-      idx = clamp(idx + Math.max(-2, Math.min(2, flick)));
-      render(true);
-      startX = null;
-    }
-
-    outer.addEventListener('mousedown',  e => { pStart(e.clientX); e.preventDefault(); });
-    window.addEventListener('mousemove', e => { if (startX !== null) pMove(e.clientX); });
-    window.addEventListener('mouseup',   pEnd);
-
-    outer.addEventListener('touchstart', e => { pStart(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
-    outer.addEventListener('touchmove',  e => { pMove(e.touches[0].clientX); e.preventDefault(); },  { passive: false });
-    outer.addEventListener('touchend',   pEnd);
-
-    outer.addEventListener('wheel', e => {
-      idx = clamp(idx + Math.sign(e.deltaY));
-      render(true);
-      e.preventDefault();
-    }, { passive: false });
-
-    rollers[key] = {
-      items,
-      setVal(v) {
-        const i = items.findIndex(x => Math.abs(x - v) < 0.001);
-        if (i >= 0) { idx = i; render(true); }
-      }
-    };
-  }
-
-  // ── Coffee presets ──
-  function setCoffeePreset(v) { rollers['coffee'] && rollers['coffee'].setVal(v); }
-
-  function updateCoffeePresets() {
-    [20, 30].forEach(v => {
-      const el = document.getElementById('preset-' + v);
-      if (el) el.classList.toggle('active', Math.abs(state.coffee - v) < 0.001);
-    });
-  }
-
-  // ── Ratio presets ──
-  function setRatioPreset(v) { rollers['ratio'] && rollers['ratio'].setVal(v); }
-
-  function updateRatioPresets() {
-    [15, 16].forEach(v => {
-      const el = document.getElementById('preset-r' + v);
-      if (el) el.classList.toggle('active', Math.abs(state.ratio - v) < 0.001);
-    });
-  }
-
-  // ── Mode ──
-  function setMode(m) {
-    mode = m;
-    document.getElementById('btn-hot').classList.toggle('active', m === 'hot');
-    document.getElementById('btn-iced').classList.toggle('active', m === 'iced');
-    document.getElementById('callout-ice').style.display = m === 'iced' ? 'flex' : 'none';
-    document.getElementById('callout-main-label').textContent = m === 'iced' ? 'Hot water' : 'Total water';
-    rollers['coffee'] && rollers['coffee'].setVal(m === 'iced' ? 30 : 20);
-    renderSteps();
-  }
-
-  // ── Calc ──
-  function buildCueTimes() {
-    const { bloom, interval, pours, brewtotal } = state;
-    totalDuration = brewtotal;
-    cueTimes = [0];
-    for (let i = 0; i < pours; i++) cueTimes.push(bloom + interval * i);
-    numSteps = cueTimes.length;
-  }
-
-  function calc() {
-    const { coffee, ratio, pours } = state;
-    const water = coffee * ratio;
-    const bloomG = coffee * 2;
-    if (mode === 'iced') {
-      const ice = water * 0.4, hotwater = water * 0.6;
-      const pourG = (hotwater - bloomG) / pours;
-      const targets = [bloomG];
-      for (let i = 0; i < pours; i++) targets.push(bloomG + pourG * (i + 1));
-      return { water, bloomG, targets, ice, hotwater, isIced: true };
-    } else {
-      const pourG = (water - bloomG) / pours;
-      const targets = [bloomG];
-      for (let i = 0; i < pours; i++) targets.push(bloomG + pourG * (i + 1));
-      return { water, bloomG, targets, isIced: false };
-    }
-  }
-
-  function fmt(g) { const n = parseFloat(g); return Number.isInteger(n) ? String(n) : n.toFixed(1); }
-  function fmtTime(s) { return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
-
-  const ORDINALS = ['First','Second','Third','Fourth','Fifth','Sixth'];
-  function pourName(i) {
-    if (i === 0) return 'Bloom';
-    if (i === state.pours) return 'Final pour';
-    return ORDINALS[i-1] + ' pour';
-  }
-
-  function saveState() {
-    try { localStorage.setItem('pourover', JSON.stringify({ ...state, mode })); } catch(e) {}
-  }
-
-  function loadState() {
+  function load() {
     try {
-      const saved = JSON.parse(localStorage.getItem('pourover'));
-      if (!saved) return;
-      Object.keys(CONFIGS).forEach(k => {
-        if (saved[k] !== undefined) state[k] = saved[k];
+      const s = JSON.parse(localStorage.getItem(KEY));
+      if (s) {
+        if (Array.isArray(s.recipes)) recipes = s.recipes;
+        Object.assign(R, s.R || {});
+        Object.assign(T, s.T || {});
+        sound = !!s.sound;
+        return;
+      }
+    } catch (e) {}
+    // First run of this version: bring over settings and recipes from the old app.
+    try {
+      const old = JSON.parse(localStorage.getItem('pourover'));
+      if (old) {
+        ['coffee', 'ratio', 'bloom', 'interval', 'pours'].forEach(k => { if (old[k] !== undefined) R[k] = old[k]; });
+        if (old.brewtotal !== undefined) R.target = old.brewtotal;
+        if (old.mode === 'iced') R.mode = 'iced';
+      }
+      const oldPresets = JSON.parse(localStorage.getItem('pourover_presets')) || [];
+      recipes = oldPresets.map((p, i) => ({
+        id: 'r' + (p.savedAt || Date.now()) + i, name: p.name,
+        coffee: p.coffee ?? 20, ratio: p.ratio ?? 15, bloom: p.bloom ?? 30, interval: p.interval ?? 20,
+        pours: p.pours ?? 3, target: p.brewtotal ?? 210, mode: p.mode === 'iced' ? 'iced' : 'hot',
+      }));
+    } catch (e) {}
+    const match = recipes.find(r => FIELDS.every(f => r[f] === R[f]));
+    R.recipeId = match ? match.id : null;
+  }
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify({ recipes, R, T, sound })); } catch (e) {} }
+
+  // ── Helpers ──
+  const fmtT = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  const fmtG = g => { const r = Math.round(g * 10) / 10; return r % 1 === 0 ? String(r) : r.toFixed(1); };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const ORD = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth'];
+
+  const current = () => recipes.find(r => r.id === R.recipeId) || null;
+  const edited = () => { const c = current(); return !c || FIELDS.some(f => c[f] !== R[f]); };
+  const summary = r => r.coffee + 'g · 1:' + r.ratio + ' · ' + fmtT(r.target);
+
+  function plan() {
+    const water = R.coffee * R.ratio, iced = R.mode === 'iced';
+    const hot = iced ? water * 0.6 : water, ice = water * 0.4, bloomG = R.coffee * 2;
+    const pourG = (hot - bloomG) / R.pours;
+    const steps = [{ name: 'Bloom', t: 0, g: bloomG, note: 'Saturate all the grounds evenly.' }];
+    for (let i = 1; i <= R.pours; i++) {
+      const last = i === R.pours;
+      steps.push({
+        name: last ? 'Final pour' : ORD[i - 1] + ' pour', t: R.bloom + R.interval * (i - 1), g: bloomG + pourG * i,
+        note: last ? (iced ? 'Finish the hot water. Let it draw down onto the ice.' : 'Finish the brew. Let it draw down fully.') : 'Pour in slow, steady circles.',
       });
-      if (saved.mode === 'iced') mode = 'iced';
-    } catch(e) {}
+    }
+    return { water, hot, ice, iced, steps };
   }
 
-  function renderSteps() {
-    buildCueTimes();
-    saveState();
-    const v = calc();
-    document.getElementById('target-display').textContent = fmtTime(state.brewtotal);
-    document.getElementById('total-water').textContent = fmt(v.isIced ? v.hotwater : v.water);
-    if (v.isIced) document.getElementById('ice-amount').textContent = fmt(v.ice);
-
-    const container = document.getElementById('steps');
-    container.innerHTML = '';
-
-    for (let i = 0; i < numSteps; i++) {
-      const title = pourName(i);
-      const target = fmt(v.targets[i]);
-      const isLast = i === numSteps - 1;
-      const unit = i === 0 ? 'g' : (v.isIced && isLast) ? 'g hot water' : 'g total';
-      const note = i === 0
-        ? 'Saturate all grounds evenly. Wait for next cue.'
-        : isLast
-          ? (v.isIced ? 'Complete hot water. Allow full drawdown onto ice.' : 'Complete the brew. Allow full drawdown.')
-          : 'Pour in slow steady circles.';
-
-      const div = document.createElement('div');
-      div.className = 'step'; div.id = 'step-' + i;
-      div.innerHTML =
-        '<div class="step-header">' +
-          '<span class="step-title">' + title + '</span>' +
-          '<span class="step-badge">' + target + 'g</span>' +
-          '<span class="step-time-badge">' + fmtTime(cueTimes[i]) + '</span>' +
-        '</div>' +
-        '<div class="step-body"><div class="step-body-inner"><div class="step-body-pad">' +
-          '<p class="step-note">' + note + '</p>' +
-        '</div></div></div>';
-      container.appendChild(div);
-    }
-
-    if (v.isIced) {
-      const note = document.createElement('div');
-      note.className = 'ice-note';
-      note.textContent = 'Place ' + fmt(v.ice) + 'g ice in your vessel before brewing.';
-      container.appendChild(note);
-    }
-
-    applyStepStates(currentActiveStep());
-    updateProgressMarkers();
-    updatePips(currentActiveStep());
-    updateTimerStepInfo(currentActiveStep());
-  }
+  const elapsed = () => Math.min(MAX, T.base + (T.startedAt ? (Date.now() - T.startedAt) / 1000 : 0));
+  const running = () => T.startedAt !== null;
+  const activeIdx = (p, e) => { let a = -1; p.steps.forEach((s, i) => { if (e >= s.t) a = i; }); return a; };
 
   // ── Timer ──
-  function currentActiveStep() {
-    let a = -1;
-    for (let i = cueTimes.length - 1; i >= 0; i--) { if (elapsed >= cueTimes[i]) { a = i; break; } }
-    return a;
+  function start() {
+    if (elapsed() >= MAX) return;
+    openSheet(false);
+    T.startedAt = Date.now();
+    if (sound) playAudio();
+    requestWake(); persist(); render();
   }
-
-  function applyStepStates(active) {
-    for (let i = 0; i < numSteps; i++) {
-      const el = document.getElementById('step-' + i);
-      if (!el) continue;
-      el.classList.remove('active', 'done');
-      if (i === active) el.classList.add('active');
-      else if (i < active) el.classList.add('done');
-    }
+  function pause() {
+    T.base = elapsed(); T.startedAt = null;
+    if (audio) audio.pause();
+    releaseWake(); persist(); render();
   }
-
-  const MAX_DURATION = 300; // 5:00 hard stop
-
-  function populateTrack(track, idPrefix) {
-    if (!track) return;
-    track.querySelectorAll('.step-marker, .progress-target-line').forEach(el => el.remove());
-    const targetPct = (totalDuration / MAX_DURATION) * 100;
-    const tl = document.createElement('div');
-    tl.className = 'progress-target-line';
-    tl.style.left = targetPct + '%';
-    track.appendChild(tl);
-    cueTimes.forEach((t, i) => {
-      if (i === 0) return;
-      const pct = (t / MAX_DURATION) * 100;
-      const dot = document.createElement('div');
-      dot.className = 'step-marker';
-      dot.id = idPrefix + i;
-      dot.style.left = pct + '%';
-      track.appendChild(dot);
-    });
-  }
-
-  function updateProgressMarkers() {
-    populateTrack(document.getElementById('progress-track'), 'smark-');
-    populateTrack(document.getElementById('b2-progress-track'), 'b2smark-');
-  }
-
-  function updateMarkerStates(activeStep) {
-    ['smark-', 'b2smark-'].forEach(prefix => {
-      cueTimes.forEach((t, i) => {
-        if (i === 0) return;
-        const dot = document.getElementById(prefix + i);
-        if (!dot) return;
-        dot.classList.remove('reached', 'current');
-        if (i < activeStep)        dot.classList.add('reached');
-        else if (i === activeStep) dot.classList.add('current');
-      });
-    });
-  }
-
-  function updatePips(activeStep) {
-    const pip = document.getElementById('step-pip');
-    pip.innerHTML = '';
-    for (let i = 0; i < numSteps; i++) {
-      const d = document.createElement('div');
-      d.className = 'step-pip-dot';
-      if (i < activeStep)       d.classList.add('done');
-      else if (i === activeStep) d.classList.add('active');
-      pip.appendChild(d);
-    }
-  }
-
-  function setLabel(text, lit) {
-    const le = document.getElementById('timer-label');
-    const lt = document.getElementById('timer-label-text');
-    lt.textContent = text;
-    le.classList.toggle('lit', !!lit);
-  }
-
-  function flashCue(label) {
-    const te = document.getElementById('timer');
-    te.classList.add('cue');
-    setLabel(label, true);
-    setTimeout(() => { te.classList.remove('cue'); setLabel(running ? 'brewing\u2026' : 'ready', false); }, 900);
-  }
-
-  function updateTimerStepInfo(activeStep) {
-    const el = document.getElementById('timer-step-info');
-    const nx = document.getElementById('tsi-next-line');
-    if (!el) return;
-
-    if (!running && elapsed === 0) {
-      const v = calc();
-      el.innerHTML =
-        '<span class="tsi-name">Bloom</span>' +
-        '<span class="tsi-target">' + fmt(v.bloomG) + '<span class="tsi-unit">g</span></span>';
-      if (nx) nx.innerHTML = '';
-      return;
-    }
-
-    if (activeStep < 0 || activeStep >= numSteps) {
-      el.innerHTML = '';
-      if (nx) nx.innerHTML = '';
-      return;
-    }
-
-    const v = calc();
-    const name = pourName(activeStep);
-    const target = fmt(v.targets[activeStep]);
-    const isLast = activeStep === numSteps - 1;
-    const unit = activeStep === 0 ? 'g' : (v.isIced && isLast) ? 'g hot' : 'g';
-
-    el.innerHTML =
-      '<span class="tsi-name">' + name + '</span>' +
-      '<span class="tsi-target">' + target + '<span class="tsi-unit">' + unit + '</span></span>';
-
-    if (nx) {
-      if (activeStep < numSteps - 1) {
-        const nextName = pourName(activeStep + 1);
-        const nextTime = fmtTime(cueTimes[activeStep + 1]);
-        nx.textContent = nextName + ' @ ' + nextTime;
-      } else {
-        nx.textContent = '';
-      }
-    }
-  }
-
-  function updateTimer() {
-    const te = document.getElementById('timer');
-    const remaining = totalDuration - elapsed;
-
-    te.textContent = fmtTime(elapsed);
-    // progress fills relative to MAX_DURATION so it keeps moving past target
-    document.getElementById('progress').style.width = Math.min((elapsed / MAX_DURATION) * 100, 100) + '%';
-
-    const active = currentActiveStep();
-    applyStepStates(active);
-    updateMarkerStates(active);
-    updatePips(active);
-    updateTimerStepInfo(active);
-
-    // Hard stop at 5:00
-    if (elapsed >= MAX_DURATION) {
-      clearInterval(timerInterval); running = false;
-      document.getElementById('btn-start').textContent = 'Done';
-      te.classList.add('cue');
-      setLabel('done.', true);
-      return;
-    }
-
-    // Target time crossed — flash but keep going
-    if (elapsed === totalDuration) {
-      te.classList.add('cue');
-      setLabel('on time \u2014 let it drain', true);
-      setTimeout(() => { te.classList.remove('cue'); setLabel('draining\u2026', false); }, 1800);
-      return;
-    }
-
-    // Pour cues
-    if (elapsed > 0 && cueTimes.includes(elapsed)) {
-      flashCue('\u2192 ' + pourName(cueTimes.indexOf(elapsed)));
-      return;
-    }
-
-    // End-approach cues (relative to target)
-    if (remaining === 30 || remaining === 10) {
-      flashCue(remaining + 's remaining');
-      return;
-    }
-
-    // Post-target running state
-    if (elapsed > totalDuration) {
-      te.classList.remove('cue');
-      setLabel('draining\u2026', false);
-      return;
-    }
-
-    te.classList.remove('cue');
-    setLabel(running ? 'brewing\u2026' : 'ready', false);
-  }
-
-  function enterBrewMode() {
-    document.querySelector('.timer-block').classList.add('brewing-mode');
-    syncBrewPanel();
-  }
-
-  function exitBrewMode() {
-    document.querySelector('.timer-block').classList.remove('brewing-mode');
-  }
-
-  function syncBrewPanel() {
-    // Mirror the main timer display into the brew panel
-    const active = currentActiveStep();
-    const v = calc();
-
-    // timer number
-    const bt = document.getElementById('b2-timer');
-    if (bt) {
-      bt.textContent = fmtTime(elapsed);
-      bt.classList.toggle('cue', document.getElementById('timer').classList.contains('cue'));
-    }
-
-    // step name + gram
-    const sn = document.getElementById('b2-step-name');
-    const sg = document.getElementById('b2-gram');
-    if (active >= 0 && active < numSteps && sn && sg) {
-      sn.textContent = pourName(active);
-      const target = fmt(v.targets[active]);
-      const isLast = active === numSteps - 1;
-      const unit = active === 0 ? 'g' : (v.isIced && isLast) ? 'g hot' : 'g';
-      sg.innerHTML = target + '<span class="b2-gram-unit">' + unit + '</span>';
-    } else if (sn && sg) {
-      sn.textContent = '';
-      sg.innerHTML = '';
-    }
-
-    // note
-    const noteEl = document.getElementById('b2-note');
-    if (noteEl && active >= 0) {
-      const isLast = active === numSteps - 1;
-      noteEl.textContent = active === 0
-        ? 'Saturate all grounds evenly.'
-        : isLast
-          ? (v.isIced ? 'Complete hot water. Allow full drawdown onto ice.' : 'Complete the brew. Allow full drawdown.')
-          : 'Pour in slow steady circles.';
-    }
-
-    // next step
-    const nv = document.getElementById('b2-next-val');
-    if (nv) {
-      if (active >= 0 && active < numSteps - 1) {
-        nv.textContent = pourName(active + 1) + '\n@ ' + fmtTime(cueTimes[active + 1]);
-        nv.style.whiteSpace = 'pre';
-      } else {
-        nv.textContent = elapsed >= totalDuration
-          ? (mode === 'iced' ? 'stir & serve' : 'allow full drawdown')
-          : '';
-      }
-    }
-
-    // progress
-    const bp = document.getElementById('b2-progress');
-    if (bp) bp.style.width = Math.min((elapsed / MAX_DURATION) * 100, 100) + '%';
-
-    // pips
-    const bpip = document.getElementById('b2-pip');
-    if (bpip) {
-      bpip.innerHTML = '';
-      for (let i = 0; i < numSteps; i++) {
-        const d = document.createElement('div');
-        d.className = 'step-pip-dot';
-        if (i < active) d.classList.add('done');
-        else if (i === active) d.classList.add('active');
-        bpip.appendChild(d);
-      }
-    }
-
-    // brew btn label
-    const bbs = document.getElementById('b2-btn-start');
-    if (bbs) {
-      if (elapsed >= MAX_DURATION) bbs.textContent = 'Done';
-      else bbs.textContent = running ? 'Pause' : 'Resume';
-    }
-  }
-
-  function startStop() {
-    if (elapsed >= MAX_DURATION) return;
-    if (running) {
-      clearInterval(timerInterval);
-      running = false;
-      document.getElementById('btn-start').textContent = 'Resume';
-      setLabel('paused', false);
-      exitBrewMode();
-    } else {
-      running = true;
-      document.getElementById('btn-start').textContent = 'Pause';
-      timerInterval = setInterval(() => { elapsed++; updateTimer(); syncBrewPanel(); }, 1000);
-      enterBrewMode();
-    }
-  }
-
   function reset() {
-    clearInterval(timerInterval); running = false; elapsed = 0;
-    document.getElementById('btn-start').textContent = 'Start';
-    const te = document.getElementById('timer');
-    te.textContent = '0:00'; te.classList.remove('cue');
-    setLabel('ready', false);
-    document.getElementById('progress').style.width = '0%';
-    updateMarkerStates(-1);
-    updatePips(-1);
-    updateTimerStepInfo(-1);
-    for (let i = 0; i < numSteps; i++) {
-      const el = document.getElementById('step-' + i);
-      if (el) el.classList.remove('active', 'done');
-    }
-    exitBrewMode();
-    syncBrewPanel();
+    T.base = 0; T.startedAt = null; lastStep = -2;
+    if (audio) { audio.pause(); try { audio.currentTime = 0; } catch (e) {} }
+    releaseWake(); persist(); render();
   }
 
-  document.getElementById('btn-start').addEventListener('click', startStop);
-  document.getElementById('btn-reset').addEventListener('click', reset);
-  document.getElementById('b2-btn-start').addEventListener('click', startStop);
-  document.getElementById('b2-btn-reset').addEventListener('click', reset);
-
-  // ── Presets (chip-based) ──
-  const PRESET_KEY = 'pourover_presets';
-
-  function loadPresets() {
-    try { return JSON.parse(localStorage.getItem(PRESET_KEY)) || []; } catch(e) { return []; }
+  // ── Keep the screen awake while brewing ──
+  async function requestWake() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+      wakeLock = await navigator.wakeLock.request('screen'); wakeOn = true;
+      wakeLock.addEventListener('release', () => { wakeOn = false; });
+    } catch (e) { wakeOn = false; }
   }
+  function releaseWake() { wakeOn = false; if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; } }
 
-  function savePresets(list) {
-    try { localStorage.setItem(PRESET_KEY, JSON.stringify(list)); } catch(e) {}
-  }
-
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  function renderChips() {
-    const list = loadPresets();
-    const strip = document.getElementById('chip-strip');
-    const addBtn = document.getElementById('chip-add');
-    // remove existing chips (not the add button)
-    strip.querySelectorAll('.recipe-chip').forEach(el => el.remove());
-    list.forEach((p, i) => {
-      const chip = document.createElement('div');
-      chip.className = 'recipe-chip';
-      chip.dataset.idx = i;
-      chip.innerHTML =
-        '<span class="chip-name">' + escHtml(p.name) + '</span>' +
-        '<span class="chip-del" data-idx="' + i + '">✕</span>';
-      chip.addEventListener('click', (e) => {
-        if (e.target.classList.contains('chip-del')) {
-          deletePreset(parseInt(e.target.dataset.idx));
-        } else {
-          applyPreset(p, chip);
-        }
-      });
-      strip.insertBefore(chip, addBtn);
+  // ── Sound cues: one audio track with every chime at its exact time, so it keeps playing when the phone locks ──
+  function buildTrack() {
+    const p = plan();
+    const key = JSON.stringify([p.steps.map(s => s.t), R.target]);
+    if (audio && audioKey === key) return;
+    const sr = 11025, n = sr * (MAX + 2), d = new Float32Array(n);
+    const tone = (t, f, len, amp) => {
+      const s0 = Math.floor(t * sr), L = Math.floor(len * sr);
+      for (let i = 0; i < L && s0 + i < n; i++) d[s0 + i] += amp * Math.min(1, i / 60) * Math.exp(-5 * i / L) * Math.sin(2 * Math.PI * f * i / sr);
+    };
+    tone(0.05, 880, 0.3, 0.5);
+    p.steps.forEach((s, i) => {
+      if (i === 0) return;
+      [3, 2, 1].forEach(k => { if (s.t - k > 0.5) tone(s.t - k, 660, 0.07, 0.22); });
+      tone(s.t, 880, 0.18, 0.6); tone(s.t + 0.2, 1320, 0.4, 0.6);
     });
+    [0, 0.3, 0.6].forEach(o => tone(R.target + o, 990, 0.25, 0.6));
+    const buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    str(36, 'data'); v.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, d[i])) * 0x7fff, true);
+    if (audio) { audio.pause(); URL.revokeObjectURL(audio.src); }
+    audio = new Audio(URL.createObjectURL(new Blob([buf], { type: 'audio/wav' })));
+    audio.preload = 'auto'; audioKey = key;
+  }
+  function playAudio() {
+    buildTrack();
+    const at = elapsed();
+    const seek = () => { try { audio.currentTime = at; } catch (e) {} };
+    if (audio.readyState >= 1) seek(); else audio.addEventListener('loadedmetadata', seek, { once: true });
+    audio.play().catch(() => {});
   }
 
-  function applyPreset(p, chipEl) {
-    Object.keys(CONFIGS).forEach(k => {
-      if (p[k] !== undefined) state[k] = p[k];
-    });
-    if (p.mode) {
-      mode = p.mode;
-      document.getElementById('btn-hot').classList.toggle('active', mode === 'hot');
-      document.getElementById('btn-iced').classList.toggle('active', mode === 'iced');
-      document.getElementById('callout-ice').style.display = mode === 'iced' ? 'flex' : 'none';
-      document.getElementById('callout-main-label').textContent = mode === 'iced' ? 'Hot water' : 'Total water';
+  // ── Render ──
+  function heroInfo(p, a, e) {
+    if (a < 0 || (e === 0 && !running())) {
+      const s = p.steps[0];
+      return { label: 'First up', g: s.g, step: s.name + ' · ' + s.note, next: 'Target <b>' + fmtT(R.target) + '</b>' };
     }
-    Object.keys(CONFIGS).forEach(k => rollers[k] && rollers[k].setVal(state[k]));
-    // highlight active chip
-    document.querySelectorAll('.recipe-chip').forEach(c => c.classList.remove('active'));
-    if (chipEl) chipEl.classList.add('active');
+    const s = p.steps[a], nx = p.steps[a + 1];
+    if (e >= MAX) return { label: 'Finished', g: p.hot, step: 'Brew complete', next: 'Stopped at <b>5:00</b>' };
+    if (e >= R.target) return { label: 'Let it drain', g: p.hot, step: p.iced ? 'Stir, then serve' : 'Full drawdown', next: 'Target hit at <b>' + fmtT(R.target) + '</b>' };
+    return { label: 'Pour to', g: s.g, step: s.name, next: nx ? nx.name + ' in <b>' + fmtT(nx.t - e + 0.999) + '</b>' : 'Target in <b>' + fmtT(R.target - e + 0.999) + '</b>' };
+  }
+  const span = (p, i) => Math.max(1, (p.steps[i + 1] ? p.steps[i + 1].t : R.target) - p.steps[i].t);
+  const frac = (p, i, e) => Math.max(0, Math.min(1, (e - p.steps[i].t) / span(p, i)));
+
+  function renderScreen(p, a, e) {
+    const h = heroInfo(p, a, e);
+    const segs = p.steps.map((s, i) => '<span style="--w:' + span(p, i) + '"><i style="width:' + frac(p, i, e) * 100 + '%"></i></span>').join('');
+    const rows = (p.iced ? '<li class="row prep ' + (e > 0 ? 'done' : '') + '"><span class="r-time">prep</span><span class="r-name">Ice in the server</span><span class="r-g">' + fmtG(p.ice) + '<small>g</small></span></li>' : '') +
+      p.steps.map((s, i) => {
+        const cls = i < a ? 'done' : i === a && e < R.target ? 'active' : i === a ? 'done' : '';
+        const last = i === p.steps.length - 1;
+        return '<li class="row ' + cls + '"><span class="r-time">' + fmtT(s.t) + '</span><span class="r-name">' + s.name + '</span>' +
+          '<span class="r-g">' + fmtG(s.g) + '<small>' + (i === 0 ? 'g' : last && p.iced ? 'g hot' : 'g total') + '</small></span>' +
+          (cls === 'active' ? '<span class="r-note">' + s.note + '</span><span class="r-bar"><i style="width:' + frac(p, i, e) * 100 + '%"></i></span>' : '') + '</li>';
+      }).join('');
+    $('screen').innerHTML =
+      '<div class="hero"><div><div class="h-label">' + h.label + '</div><div class="h-grams">' + fmtG(h.g) + '<small>g</small></div><div class="h-step">' + h.step + '</div></div>' +
+      '<div class="h-right"><div class="h-time">' + fmtT(e) + '</div><div class="h-next">' + h.next + '</div></div></div>' +
+      '<div class="segbar">' + segs + '</div><div class="segscale"><span>0:00</span><span>' + fmtT(R.target) + '</span></div>' +
+      '<ul class="steps">' + rows + '</ul>';
   }
 
-  function saveChipPreset() {
-    const input = document.getElementById('chip-input');
-    const name = input.value.trim();
-    if (!name) { input.focus(); return; }
-    const list = loadPresets();
-    list.push({ name, ...state, mode, savedAt: Date.now() });
-    savePresets(list);
-    input.value = '';
-    chipSaveOpen = false;
-    document.getElementById('chip-save-row').classList.remove('open');
-    renderChips();
-    // auto-highlight newly saved chip
-    const chips = document.querySelectorAll('.recipe-chip');
-    if (chips.length) {
-      document.querySelectorAll('.recipe-chip').forEach(c => c.classList.remove('active'));
-      chips[chips.length - 1].classList.add('active');
+  function renderQuick() {
+    $('quick').innerHTML = recipes.map(r =>
+      '<button data-id="' + r.id + '" class="' + (r.id === R.recipeId && !edited() ? 'on' : '') + '"><b>' + esc(r.name) + '</b><span>' + (r.mode === 'iced' ? 'Iced' : 'Hot') + ' · ' + r.coffee + 'g</span></button>'
+    ).join('');
+  }
+
+  function render() {
+    const p = plan(), e = elapsed(), a = activeIdx(p, e);
+    if (running() && e >= MAX) { T.base = MAX; T.startedAt = null; if (audio) audio.pause(); releaseWake(); persist(); }
+    const run = running(), started = e > 0;
+
+    if (a !== lastStep) {
+      if (lastStep !== -2 && run && a > 0) cueUntil = Date.now() + 1200;
+      lastStep = a;
     }
+
+    const c = current();
+    $('recipe-name').innerHTML = esc(c ? c.name : 'Custom') + (c && edited() ? ' <em>· edited</em>' : '') + ' · ' + (R.mode === 'iced' ? 'Iced' : 'Hot');
+    $('recipe-sum').textContent = R.coffee + 'g · 1:' + R.ratio + ' · ' + fmtG(p.hot) + 'g water' + (p.iced ? ' + ' + fmtG(p.ice) + 'g ice' : '') + ' · ' + fmtT(R.target);
+    $('recipe-btn').disabled = started;
+    $('quick').hidden = started || !recipes.length;
+    $('app').classList.toggle('brewing', started);
+    $('app').classList.toggle('cue', Date.now() < cueUntil);
+    renderScreen(p, a, e);
+
+    $('go').textContent = e >= MAX ? 'Done' : run ? 'Pause' : started ? 'Resume' : 'Start';
+    $('go').classList.toggle('paused', run);
+    $('reset').hidden = run || !started;
+    $('awake').textContent = wakeOn && run ? '● Screen stays awake while brewing' : '';
   }
 
-  function deletePreset(i) {
-    const list = loadPresets();
-    list.splice(i, 1);
-    savePresets(list);
-    renderChips();
+  // ── Recipes ──
+  function loadRecipe(id) {
+    const r = recipes.find(x => x.id === id); if (!r) return;
+    FIELDS.forEach(f => { R[f] = r[f]; }); R.recipeId = id;
+    naming = false; confirmDel = false;
+    reset();
   }
+  $('quick').addEventListener('click', ev => { const b = ev.target.closest('button'); if (b) { loadRecipe(b.dataset.id); persist(); renderQuick(); render(); } });
 
-  let chipSaveOpen = false;
-  function toggleChipSave() {
-    chipSaveOpen = !chipSaveOpen;
-    document.getElementById('chip-save-row').classList.toggle('open', chipSaveOpen);
-    if (chipSaveOpen) setTimeout(() => document.getElementById('chip-input').focus(), 220);
+  function stepperHTML(k) {
+    const L = LIMITS[k];
+    const val = k === 'target' ? fmtT(R[k]) : k === 'ratio' ? '1:' + R[k] : R[k] + (L.unit || '');
+    return '<div class="stepper"><span class="s-lab">' + L.lab + (L.sub ? '<small>' + L.sub + '</small>' : '') + '</span>' +
+      '<button class="s-btn" data-k="' + k + '" data-d="-1" aria-label="Decrease ' + L.lab + '">−</button><span class="s-val">' + val + '</span>' +
+      '<button class="s-btn" data-k="' + k + '" data-d="1" aria-label="Increase ' + L.lab + '">+</button></div>';
   }
+  function renderSheet() {
+    const p = plan(), c = current(), ed = edited();
+    $('rlist').innerHTML = recipes.map(r =>
+      '<button class="ritem" data-load="' + r.id + '"><span class="tick">' + (r.id === R.recipeId ? '✓' : '') + '</span>' +
+      '<span><b>' + esc(r.name) + (r.id === R.recipeId && ed ? ' <small style="color:var(--accent)">· edited</small>' : '') + '</b><small>' + summary(r) + '</small></span>' +
+      '<span class="mode">' + (r.mode === 'iced' ? 'Iced' : 'Hot') + '</span></button>').join('') +
+      (recipes.length ? '' : '<p class="hint" style="padding:10px 0">No saved recipes yet. Set the values below and save one.</p>');
+    $('edit-title').textContent = c ? 'Editing ' + c.name : 'New recipe';
+    $('m-hot').setAttribute('aria-pressed', R.mode === 'hot');
+    $('m-iced').setAttribute('aria-pressed', R.mode === 'iced');
+    $('dose-steppers').innerHTML = ['coffee', 'ratio'].map(stepperHTML).join('');
+    $('time-steppers').innerHTML = ['bloom', 'interval', 'pours', 'target'].map(stepperHTML).join('');
+    $('totals').innerHTML =
+      '<div class="tot"><span>' + (p.iced ? 'Hot water' : 'Water') + '</span><b>' + fmtG(p.hot) + 'g</b></div>' +
+      (p.iced ? '<div class="tot"><span>Ice</span><b>' + fmtG(p.ice) + 'g</b></div>' : '') +
+      '<div class="tot"><span>Bloom</span><b>' + fmtG(R.coffee * 2) + 'g</b></div>';
 
-  loadState();
-  // apply saved mode to UI
-  document.getElementById('btn-hot').classList.toggle('active', mode === 'hot');
-  document.getElementById('btn-iced').classList.toggle('active', mode === 'iced');
-  document.getElementById('callout-ice').style.display = mode === 'iced' ? 'flex' : 'none';
-  document.getElementById('callout-main-label').textContent = mode === 'iced' ? 'Hot water' : 'Total water';
-  Object.keys(CONFIGS).forEach(setupRoller);
-  renderSteps();
-  renderChips();
-</script>
+    let html;
+    if (naming) {
+      html = '<input class="name-input" id="name-input" placeholder="Recipe name" maxlength="30" autocomplete="off" autocorrect="off" spellcheck="false" value="' + (c ? esc(c.name) + ' 2' : '') + '">' +
+        '<div class="save-row"><button class="btn" data-act="cancel-name">Cancel</button><button class="btn primary" data-act="confirm-name">Save recipe</button></div>';
+    } else if (confirmDel && c) {
+      html = '<p class="hint">Delete "' + esc(c.name) + '"? The current values stay loaded.</p><div class="save-row"><button class="btn" data-act="cancel-del">Keep it</button><button class="btn primary" data-act="confirm-del">Delete</button></div>';
+    } else {
+      html = (c && ed ? '<div class="save-row"><button class="btn primary" data-act="update">Save changes</button><button class="btn" data-act="new">Save as new</button></div><button class="btn" data-act="revert">Undo changes</button>'
+        : '<button class="btn primary" data-act="new">Save as new recipe</button>') +
+        (c ? '<button class="btn danger" data-act="delete">Delete ' + esc(c.name) + '</button>' : '');
+    }
+    $('save-box').innerHTML = html;
+    if (naming) setTimeout(() => { const i = $('name-input'); if (i) { i.focus(); i.select(); } }, 50);
+  }
+  function openSheet(o) { $('sheet').hidden = !o; $('scrim').hidden = !o; naming = false; confirmDel = false; if (o) renderSheet(); }
+  function changed() { persist(); renderSheet(); renderQuick(); render(); }
 
-<script>
-  document.getElementById('chip-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') saveChipPreset();
+  $('recipe-btn').addEventListener('click', () => { if (!elapsed()) openSheet(true); });
+  $('scrim').addEventListener('click', () => openSheet(false));
+  $('sheet-done').addEventListener('click', () => openSheet(false));
+  $('m-hot').addEventListener('click', () => { R.mode = 'hot'; changed(); });
+  $('m-iced').addEventListener('click', () => { R.mode = 'iced'; changed(); });
+  $('sheet').addEventListener('click', ev => {
+    const b = ev.target.closest('button'); if (!b) return;
+    if (b.dataset.k) {
+      const k = b.dataset.k, L = LIMITS[k];
+      R[k] = Math.max(L.min, Math.min(L.max, Math.round((R[k] + L.step * +b.dataset.d) * 10) / 10));
+      return changed();
+    }
+    if (b.dataset.load) { loadRecipe(b.dataset.load); return changed(); }
+    const act = b.dataset.act; if (!act) return;
+    const c = current();
+    if (act === 'update' && c) FIELDS.forEach(f => { c[f] = R[f]; });
+    if (act === 'revert' && c) FIELDS.forEach(f => { R[f] = c[f]; });
+    if (act === 'new') naming = true;
+    if (act === 'cancel-name') naming = false;
+    if (act === 'confirm-name') {
+      const name = ($('name-input').value || '').trim();
+      if (!name) { $('name-input').focus(); return; }
+      const r = { id: 'r' + Date.now(), name }; FIELDS.forEach(f => { r[f] = R[f]; });
+      recipes.push(r); R.recipeId = r.id; naming = false;
+    }
+    if (act === 'delete') confirmDel = true;
+    if (act === 'cancel-del') confirmDel = false;
+    if (act === 'confirm-del' && c) { recipes = recipes.filter(r => r !== c); R.recipeId = null; confirmDel = false; }
+    changed();
   });
+  $('sheet').addEventListener('keydown', ev => {
+    if (ev.target.id === 'name-input' && ev.key === 'Enter') $('save-box').querySelector('[data-act="confirm-name"]').click();
+  });
+
+  // ── Controls ──
+  $('go').addEventListener('click', () => { if (elapsed() >= MAX) return; running() ? pause() : start(); });
+  $('reset').addEventListener('click', reset);
+  $('sound-btn').addEventListener('click', () => {
+    sound = !sound;
+    $('sound-btn').setAttribute('aria-pressed', sound);
+    if (sound) { buildTrack(); if (running()) playAudio(); }
+    else if (audio) audio.pause();
+    persist();
+  });
+
+  // ── Coming back to the page ──
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); return; }
+    const away = hiddenAt ? (Date.now() - hiddenAt) / 1000 : 0;
+    hiddenAt = null;
+    if (running()) {
+      requestWake();
+      if (audio && sound && Math.abs(audio.currentTime - elapsed()) > 0.6) { try { audio.currentTime = elapsed(); } catch (e) {} }
+      if (away >= 3) {
+        const p = plan(), e = elapsed(), s = p.steps[Math.max(0, activeIdx(p, e))];
+        const t = $('toast');
+        t.innerHTML = 'You were away <b>' + fmtT(away) + '</b>. ' + (e >= R.target ? 'Target time passed, let it drain.' : 'Now on <b>' + s.name + '</b>: pour to ' + fmtG(s.g) + 'g.');
+        t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => { t.hidden = true; }, 5000);
+      }
+    }
+    render();
+  });
+  window.addEventListener('pageshow', render);
+
+  load();
+  $('sound-btn').setAttribute('aria-pressed', sound);
+  renderQuick();
+  render();
+  setInterval(render, 250);
+})();
 </script>
 
 </body>
