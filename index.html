@@ -22,6 +22,8 @@
     --card: #ede7dc;
     --on-accent: #fbf7f1;
     --scrim: rgba(26, 21, 16, 0.42);
+    --ice: #4d7c99;
+    --ice-soft: rgba(77, 124, 153, 0.14);
     --serif: 'Crimson Pro', Georgia, 'Times New Roman', serif;
     --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   }
@@ -30,7 +32,13 @@
       --paper: #17120e; --ink: #f1eadf; --mid: #ab9a83; --faint: #6f604f;
       --accent: #e27c40; --accent-soft: rgba(226, 124, 64, 0.16); --rule: #3a3027; --card: #221b15;
       --on-accent: #17120e; --scrim: rgba(0, 0, 0, 0.6); color-scheme: dark;
+      --ice: #86b3cf; --ice-soft: rgba(134, 179, 207, 0.16);
     }
+  }
+  /* Iced recipes: cool the paper slightly so the mode is obvious at a glance */
+  :root.iced { --paper: #eff1ee; --card: #e3e8e6; --rule: #cfd7d5; }
+  @media (prefers-color-scheme: dark) {
+    :root.iced { --paper: #121619; --card: #1a2126; --rule: #2c353b; }
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -78,6 +86,15 @@
   .quick button.on { background: var(--ink); border-color: var(--ink); }
   .quick button.on b { color: var(--paper); }
   .quick button.on span { color: var(--faint); }
+
+  /* Iced cues: blue edge on the recipe line, iced chips and the mode tag */
+  .mode-tag { color: var(--mid); }
+  .iced .recipe-btn:not(:disabled) { border-color: var(--ice); box-shadow: inset 3px 0 0 var(--ice); }
+  .iced .mode-tag { color: var(--ice); }
+  .quick button.is-iced { border-color: var(--ice); }
+  .quick button.is-iced span { color: var(--ice); }
+  .quick button.is-iced.on { background: var(--ice); border-color: var(--ice); }
+  .quick button.is-iced.on span { color: var(--paper); opacity: 0.8; }
   .awake { font-size: 0.56rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); padding: 4px 18px 0; min-height: 18px; }
 
   /* ── MAIN ── */
@@ -149,35 +166,58 @@
     background: var(--paper); border-radius: 22px 22px 0 0; padding: 10px 18px max(20px, env(safe-area-inset-bottom));
     max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 -10px 40px -20px rgba(0,0,0,0.5);
   }
-  .grab { width: 38px; height: 5px; border-radius: 3px; background: var(--rule); margin: 0 auto 10px; }
-  .sheet-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
-  .sheet h2 { font-family: var(--serif); font-weight: 400; font-size: 1.4rem; letter-spacing: -0.01em; }
-  .link { border: 0; background: none; font-size: 0.74rem; color: var(--accent); padding: 6px 0; }
-  .sec { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid); margin: 16px 0 8px; }
-  .rlist { display: grid; border-top: 1px solid var(--rule); }
-  .ritem { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; padding: 10px 2px; border: 0; border-bottom: 1px solid var(--rule); text-align: left; background: none; width: 100%; }
+  .grab { width: 38px; height: 5px; border-radius: 3px; background: var(--rule); margin: 0 auto 8px; }
+  .sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .name-field {
+    flex: 1; min-width: 0; font-family: var(--serif); font-weight: 400; font-size: 1.45rem; letter-spacing: -0.01em;
+    border: 0; border-bottom: 1px dashed var(--rule); background: transparent; padding: 2px 0 3px; border-radius: 0;
+  }
+  .name-field:focus { outline: none; border-bottom: 1px solid var(--accent); }
+  .name-field::placeholder { color: var(--faint); }
+  .link { border: 0; background: none; font-size: 0.74rem; color: var(--accent); padding: 6px 0; flex-shrink: 0; }
+
+  .saved-toggle {
+    width: 100%; display: flex; justify-content: space-between; align-items: center; background: none; border: 0;
+    border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 9px 2px;
+    font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid);
+  }
+  .saved-toggle svg { transition: transform 0.2s; }
+  .saved-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .rlist { display: grid; max-height: 40dvh; overflow-y: auto; }
+  .rrow { display: grid; grid-template-columns: 1fr auto; align-items: center; border-bottom: 1px solid var(--rule); }
+  .ritem { display: grid; grid-template-columns: 16px 1fr auto; gap: 8px; align-items: center; padding: 9px 2px; border: 0; text-align: left; background: none; width: 100%; min-width: 0; }
   .ritem .tick { color: var(--accent); font-size: 0.8rem; }
-  .ritem b { display: block; font-weight: 400; font-size: 0.74rem; }
+  .ritem b { display: block; font-weight: 400; font-size: 0.74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ritem small { font-size: 0.58rem; color: var(--mid); }
-  .ritem .mode { font-size: 0.56rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); border: 1px solid var(--rule); border-radius: 999px; padding: 3px 7px; }
-  .full-seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 3px; }
-  .full-seg button { border: 0; background: transparent; border-radius: 9px; padding: 10px; font-size: 0.72rem; color: var(--mid); }
+  .ritem > span:nth-child(2) { min-width: 0; }
+  .mode-pill { font-size: 0.54rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); border: 1px solid var(--rule); border-radius: 999px; padding: 3px 7px; }
+  .mode-pill.is-iced { color: var(--ice); border-color: var(--ice); background: var(--ice-soft); }
+  .del { width: 36px; height: 36px; border: 0; background: none; color: var(--faint); font-size: 0.8rem; border-radius: 8px; }
+  .del:active { background: var(--card); }
+  .confirm { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 2px; font-size: 0.66rem; }
+  .confirm span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .confirm div { display: flex; gap: 6px; flex-shrink: 0; }
+  .mini { height: 32px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--rule); background: var(--card); font-size: 0.64rem; }
+  .mini.warn { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+  .full-seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 3px; margin-top: 12px; }
+  .full-seg button { border: 0; background: transparent; border-radius: 9px; padding: 8px; font-size: 0.72rem; color: var(--mid); }
   .full-seg button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
-  .stepper { display: grid; grid-template-columns: 1fr 44px 70px 44px; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
-  .stepper:first-child { border-top: 1px solid var(--rule); }
-  .s-lab { font-size: 0.7rem; }
-  .s-lab small { display: block; font-size: 0.56rem; color: var(--mid); margin-top: 1px; }
-  .s-val { text-align: center; font-family: var(--serif); font-size: 1.35rem; font-weight: 300; font-variant-numeric: tabular-nums; }
-  .s-btn { height: 40px; border-radius: 10px; border: 1px solid var(--rule); background: var(--card); font-size: 1.1rem; color: var(--ink); touch-action: manipulation; }
-  .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 6px; margin-top: 14px; }
-  .tot { background: var(--card); border-radius: 10px; padding: 8px 10px; }
-  .tot span { display: block; font-size: 0.54rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); }
-  .tot b { font-family: var(--serif); font-weight: 300; font-size: 1.3rem; }
-  .save-box { margin-top: 16px; display: grid; gap: 8px; }
+  .full-seg #m-iced[aria-pressed="true"] { color: var(--ice); }
+
+  .sgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .stepper { background: var(--card); border-radius: 12px; padding: 7px 6px 6px; display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; row-gap: 2px; }
+  .s-lab { grid-column: 1 / -1; text-align: center; font-size: 0.56rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); }
+  .s-val { text-align: center; font-family: var(--serif); font-size: 1.4rem; font-weight: 300; font-variant-numeric: tabular-nums; line-height: 1; }
+  .s-btn { height: 36px; border-radius: 9px; border: 1px solid var(--rule); background: var(--paper); font-size: 1.05rem; color: var(--ink); touch-action: manipulation; }
+  .totals { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; font-size: 0.64rem; color: var(--mid); }
+  .totals b { font-family: var(--serif); font-weight: 400; font-size: 1.05rem; color: var(--ink); margin-left: 3px; }
+  .save-box { margin-top: 12px; display: grid; gap: 6px; }
+  .save-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.62rem; color: var(--accent); min-height: 24px; }
+  .save-meta .link { font-size: 0.64rem; color: var(--mid); text-decoration: underline; text-underline-offset: 2px; padding: 2px 0; }
   .save-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .btn { height: 46px; border-radius: 12px; border: 1px solid var(--rule); background: var(--card); font-size: 0.7rem; }
   .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  .btn.danger { color: var(--accent); background: transparent; }
   .name-input { height: 46px; border-radius: 12px; border: 1px solid var(--rule); background: var(--card); padding: 0 12px; font-size: 16px; width: 100%; }
   .hint { font-size: 0.6rem; color: var(--mid); line-height: 1.5; }
 
@@ -215,19 +255,22 @@
 <div class="toast" id="toast" hidden></div>
 
 <div class="scrim" id="scrim" hidden></div>
-<div class="sheet" id="sheet" role="dialog" aria-label="Recipes" hidden>
+<div class="sheet" id="sheet" role="dialog" aria-label="Recipe settings" hidden>
   <div class="grab"></div>
-  <div class="sheet-head"><h2>Recipes</h2><button class="link" id="sheet-done">Done</button></div>
-  <div class="rlist" id="rlist"></div>
-  <p class="sec" id="edit-title">Edit</p>
+  <div class="sheet-head">
+    <input class="name-field" id="name-field" maxlength="30" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Recipe name" placeholder="Unsaved recipe">
+    <button class="link" id="sheet-done">Done</button>
+  </div>
+  <button class="saved-toggle" id="saved-toggle" aria-expanded="false" aria-controls="rlist">
+    <span id="saved-count">Saved recipes</span>
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <div class="rlist" id="rlist" hidden></div>
   <div class="full-seg" role="group" aria-label="Hot or iced">
     <button id="m-hot" aria-pressed="true">Hot</button>
     <button id="m-iced" aria-pressed="false">Iced</button>
   </div>
-  <p class="sec">Dose</p>
-  <div id="dose-steppers"></div>
-  <p class="sec">Timing</p>
-  <div id="time-steppers"></div>
+  <div class="sgrid" id="steppers"></div>
   <div class="totals" id="totals"></div>
   <div class="save-box" id="save-box"></div>
 </div>
@@ -241,11 +284,11 @@
 
   const LIMITS = {
     coffee:   { min: 1,   max: 60,  step: 1,   lab: 'Coffee', unit: 'g' },
-    ratio:    { min: 10,  max: 20,  step: 0.5, lab: 'Ratio', sub: 'grams of water per gram of coffee' },
+    ratio:    { min: 10,  max: 20,  step: 1,   lab: 'Ratio' },
     bloom:    { min: 20,  max: 60,  step: 5,   lab: 'Bloom', unit: 's' },
-    interval: { min: 15,  max: 120, step: 5,   lab: 'Between pours', unit: 's' },
-    pours:    { min: 1,   max: 6,   step: 1,   lab: 'Pours', sub: 'after the bloom' },
-    target:   { min: 180, max: 270, step: 5,   lab: 'Target time' },
+    interval: { min: 15,  max: 120, step: 5,   lab: 'Pour every', unit: 's' },
+    pours:    { min: 1,   max: 6,   step: 1,   lab: 'Pours' },
+    target:   { min: 180, max: 270, step: 5,   lab: 'Target' },
   };
 
   // ── State ──
@@ -253,7 +296,7 @@
   const R = { coffee: 20, ratio: 15, bloom: 30, interval: 20, pours: 3, target: 210, mode: 'hot', recipeId: null };
   // Timer is derived from the clock so it stays correct when Safari pauses the page.
   const T = { base: 0, startedAt: null };
-  let sound = false, naming = false, confirmDel = false;
+  let sound = false, naming = false, confirmDelId = null, listOpen = false, draftName = '';
   let wakeLock = null, wakeOn = false;
   let audio = null, audioKey = '', hiddenAt = null, lastStep = -2, cueUntil = 0;
 
@@ -414,9 +457,19 @@
       '<ul class="steps">' + rows + '</ul>';
   }
 
+  const THEME = { light: ['#f5f0e8', '#eff1ee'], dark: ['#17120e', '#121619'] };
+  function setIcedTheme() {
+    const iced = R.mode === 'iced';
+    if (document.documentElement.classList.contains('iced') === iced) return;
+    document.documentElement.classList.toggle('iced', iced);
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => {
+      m.content = THEME[m.media.includes('dark') ? 'dark' : 'light'][iced ? 1 : 0];
+    });
+  }
+
   function renderQuick() {
     $('quick').innerHTML = recipes.map(r =>
-      '<button data-id="' + r.id + '" class="' + (r.id === R.recipeId && !edited() ? 'on' : '') + '"><b>' + esc(r.name) + '</b><span>' + (r.mode === 'iced' ? 'Iced' : 'Hot') + ' · ' + r.coffee + 'g</span></button>'
+      '<button data-id="' + r.id + '" class="' + (r.mode === 'iced' ? 'is-iced ' : '') + (r.id === R.recipeId && !edited() ? 'on' : '') + '"><b>' + esc(r.name) + '</b><span>' + (r.mode === 'iced' ? 'Iced' : 'Hot') + ' · ' + r.coffee + 'g</span></button>'
     ).join('');
   }
 
@@ -431,11 +484,12 @@
     }
 
     const c = current();
-    $('recipe-name').innerHTML = esc(c ? c.name : 'Custom') + (c && edited() ? ' <em>· edited</em>' : '') + ' · ' + (R.mode === 'iced' ? 'Iced' : 'Hot');
+    $('recipe-name').innerHTML = esc(c ? c.name : 'Custom') + (c && edited() ? ' <em>· edited</em>' : '') + ' · <span class="mode-tag">' + (R.mode === 'iced' ? 'Iced' : 'Hot') + '</span>';
     $('recipe-sum').textContent = R.coffee + 'g · 1:' + R.ratio + ' · ' + fmtG(p.hot) + 'g water' + (p.iced ? ' + ' + fmtG(p.ice) + 'g ice' : '') + ' · ' + fmtT(R.target);
     $('recipe-btn').disabled = started;
     $('quick').hidden = started || !recipes.length;
     $('app').classList.toggle('brewing', started);
+    setIcedTheme();
     $('app').classList.toggle('cue', Date.now() < cueUntil);
     renderScreen(p, a, e);
 
@@ -449,80 +503,126 @@
   function loadRecipe(id) {
     const r = recipes.find(x => x.id === id); if (!r) return;
     FIELDS.forEach(f => { R[f] = r[f]; }); R.recipeId = id;
-    naming = false; confirmDel = false;
+    naming = false; confirmDelId = null;
     reset();
   }
   $('quick').addEventListener('click', ev => { const b = ev.target.closest('button'); if (b) { loadRecipe(b.dataset.id); persist(); renderQuick(); render(); } });
 
+  // Step to the next multiple of the step size, so old values like 1:15.5 snap to whole numbers.
+  function stepValue(k, dir) {
+    const L = LIMITS[k], v = R[k], st = L.step;
+    const next = dir > 0 ? Math.floor(v / st + 1e-9) * st + st : Math.ceil(v / st - 1e-9) * st - st;
+    return Math.max(L.min, Math.min(L.max, Math.round(next * 10) / 10));
+  }
+
   function stepperHTML(k) {
     const L = LIMITS[k];
     const val = k === 'target' ? fmtT(R[k]) : k === 'ratio' ? '1:' + R[k] : R[k] + (L.unit || '');
-    return '<div class="stepper"><span class="s-lab">' + L.lab + (L.sub ? '<small>' + L.sub + '</small>' : '') + '</span>' +
+    return '<div class="stepper"><span class="s-lab">' + L.lab + '</span>' +
       '<button class="s-btn" data-k="' + k + '" data-d="-1" aria-label="Decrease ' + L.lab + '">−</button><span class="s-val">' + val + '</span>' +
       '<button class="s-btn" data-k="' + k + '" data-d="1" aria-label="Increase ' + L.lab + '">+</button></div>';
   }
+
+  function renderList() {
+    $('saved-count').textContent = 'Saved recipes · ' + recipes.length;
+    $('saved-toggle').setAttribute('aria-expanded', listOpen);
+    $('rlist').hidden = !listOpen;
+    $('rlist').innerHTML = recipes.map(r => {
+      if (r.id === confirmDelId) {
+        return '<div class="rrow"><div class="confirm"><span>Delete ' + esc(r.name) + '?</span><div>' +
+          '<button class="mini" data-act="cancel-del">Keep</button><button class="mini warn" data-del-yes="' + r.id + '">Delete</button></div></div></div>';
+      }
+      return '<div class="rrow"><button class="ritem" data-load="' + r.id + '"><span class="tick">' + (r.id === R.recipeId ? '✓' : '') + '</span>' +
+        '<span><b>' + esc(r.name) + '</b><small>' + summary(r) + '</small></span>' +
+        '<span class="mode-pill' + (r.mode === 'iced' ? ' is-iced' : '') + '">' + (r.mode === 'iced' ? 'Iced' : 'Hot') + '</span></button>' +
+        '<button class="del" data-del="' + r.id + '" aria-label="Delete ' + esc(r.name) + '">✕</button></div>';
+    }).join('') || '<p class="hint" style="padding:10px 2px">No saved recipes yet.</p>';
+  }
+
   function renderSheet() {
     const p = plan(), c = current(), ed = edited();
-    $('rlist').innerHTML = recipes.map(r =>
-      '<button class="ritem" data-load="' + r.id + '"><span class="tick">' + (r.id === R.recipeId ? '✓' : '') + '</span>' +
-      '<span><b>' + esc(r.name) + (r.id === R.recipeId && ed ? ' <small style="color:var(--accent)">· edited</small>' : '') + '</b><small>' + summary(r) + '</small></span>' +
-      '<span class="mode">' + (r.mode === 'iced' ? 'Iced' : 'Hot') + '</span></button>').join('') +
-      (recipes.length ? '' : '<p class="hint" style="padding:10px 0">No saved recipes yet. Set the values below and save one.</p>');
-    $('edit-title').textContent = c ? 'Editing ' + c.name : 'New recipe';
+    const nf = $('name-field');
+    if (document.activeElement !== nf) nf.value = c ? c.name : draftName;
+    renderList();
     $('m-hot').setAttribute('aria-pressed', R.mode === 'hot');
     $('m-iced').setAttribute('aria-pressed', R.mode === 'iced');
-    $('dose-steppers').innerHTML = ['coffee', 'ratio'].map(stepperHTML).join('');
-    $('time-steppers').innerHTML = ['bloom', 'interval', 'pours', 'target'].map(stepperHTML).join('');
+    $('steppers').innerHTML = ['coffee', 'ratio', 'bloom', 'interval', 'pours', 'target'].map(stepperHTML).join('');
     $('totals').innerHTML =
-      '<div class="tot"><span>' + (p.iced ? 'Hot water' : 'Water') + '</span><b>' + fmtG(p.hot) + 'g</b></div>' +
-      (p.iced ? '<div class="tot"><span>Ice</span><b>' + fmtG(p.ice) + 'g</b></div>' : '') +
-      '<div class="tot"><span>Bloom</span><b>' + fmtG(R.coffee * 2) + 'g</b></div>';
+      '<span>' + (p.iced ? 'Hot water' : 'Water') + '<b>' + fmtG(p.hot) + 'g</b></span>' +
+      (p.iced ? '<span>Ice<b>' + fmtG(p.ice) + 'g</b></span>' : '') +
+      '<span>Bloom<b>' + fmtG(R.coffee * 2) + 'g</b></span>';
 
     let html;
     if (naming) {
-      html = '<input class="name-input" id="name-input" placeholder="Recipe name" maxlength="30" autocomplete="off" autocorrect="off" spellcheck="false" value="' + (c ? esc(c.name) + ' 2' : '') + '">' +
+      html = '<input class="name-input" id="name-input" placeholder="Name for the new recipe" maxlength="30" autocomplete="off" autocorrect="off" spellcheck="false" value="' + (c ? esc(c.name) + ' 2' : '') + '">' +
         '<div class="save-row"><button class="btn" data-act="cancel-name">Cancel</button><button class="btn primary" data-act="confirm-name">Save recipe</button></div>';
-    } else if (confirmDel && c) {
-      html = '<p class="hint">Delete "' + esc(c.name) + '"? The current values stay loaded.</p><div class="save-row"><button class="btn" data-act="cancel-del">Keep it</button><button class="btn primary" data-act="confirm-del">Delete</button></div>';
+    } else if (c && ed) {
+      html = '<div class="save-meta"><span>Edited, not saved</span><button class="link" data-act="revert">Undo changes</button></div>' +
+        '<div class="save-row"><button class="btn primary" data-act="update">Save changes</button><button class="btn" data-act="new">Save as new</button></div>';
+    } else if (c) {
+      html = '<button class="btn" data-act="new">Save a copy as new recipe</button>';
     } else {
-      html = (c && ed ? '<div class="save-row"><button class="btn primary" data-act="update">Save changes</button><button class="btn" data-act="new">Save as new</button></div><button class="btn" data-act="revert">Undo changes</button>'
-        : '<button class="btn primary" data-act="new">Save as new recipe</button>') +
-        (c ? '<button class="btn danger" data-act="delete">Delete ' + esc(c.name) + '</button>' : '');
+      html = '<button class="btn primary" data-act="save-draft">Save recipe</button>';
     }
     $('save-box').innerHTML = html;
     if (naming) setTimeout(() => { const i = $('name-input'); if (i) { i.focus(); i.select(); } }, 50);
   }
-  function openSheet(o) { $('sheet').hidden = !o; $('scrim').hidden = !o; naming = false; confirmDel = false; if (o) renderSheet(); }
+  function openSheet(o) {
+    $('sheet').hidden = !o; $('scrim').hidden = !o;
+    naming = false; confirmDelId = null; listOpen = false;
+    if (o) renderSheet();
+  }
   function changed() { persist(); renderSheet(); renderQuick(); render(); }
+
+  function addRecipe(name) {
+    const r = { id: 'r' + Date.now(), name }; FIELDS.forEach(f => { r[f] = R[f]; });
+    recipes.push(r); R.recipeId = r.id; draftName = '';
+  }
 
   $('recipe-btn').addEventListener('click', () => { if (!elapsed()) openSheet(true); });
   $('scrim').addEventListener('click', () => openSheet(false));
   $('sheet-done').addEventListener('click', () => openSheet(false));
+  $('saved-toggle').addEventListener('click', () => { listOpen = !listOpen; confirmDelId = null; renderList(); });
   $('m-hot').addEventListener('click', () => { R.mode = 'hot'; changed(); });
   $('m-iced').addEventListener('click', () => { R.mode = 'iced'; changed(); });
+
+  // Rename in place: typing in the title renames the selected recipe straight away.
+  $('name-field').addEventListener('input', ev => {
+    const c = current(), v = ev.target.value;
+    if (c) { if (v.trim()) { c.name = v.trim(); persist(); renderList(); renderQuick(); render(); } }
+    else draftName = v;
+  });
+  $('name-field').addEventListener('blur', ev => { const c = current(); if (c && !ev.target.value.trim()) ev.target.value = c.name; });
+  $('name-field').addEventListener('keydown', ev => { if (ev.key === 'Enter') ev.target.blur(); });
+
   $('sheet').addEventListener('click', ev => {
-    const b = ev.target.closest('button'); if (!b) return;
-    if (b.dataset.k) {
-      const k = b.dataset.k, L = LIMITS[k];
-      R[k] = Math.max(L.min, Math.min(L.max, Math.round((R[k] + L.step * +b.dataset.d) * 10) / 10));
+    const b = ev.target.closest('button'); if (!b || b.id === 'saved-toggle' || b.id === 'sheet-done') return;
+    if (b.dataset.k) { R[b.dataset.k] = stepValue(b.dataset.k, +b.dataset.d); return changed(); }
+    if (b.dataset.load) { loadRecipe(b.dataset.load); listOpen = false; return changed(); }
+    if (b.dataset.del) { confirmDelId = b.dataset.del; return renderList(); }
+    if (b.dataset.delYes) {
+      recipes = recipes.filter(r => r.id !== b.dataset.delYes);
+      if (R.recipeId === b.dataset.delYes) { R.recipeId = null; draftName = ''; }
+      confirmDelId = null;
       return changed();
     }
-    if (b.dataset.load) { loadRecipe(b.dataset.load); return changed(); }
     const act = b.dataset.act; if (!act) return;
     const c = current();
     if (act === 'update' && c) FIELDS.forEach(f => { c[f] = R[f]; });
     if (act === 'revert' && c) FIELDS.forEach(f => { R[f] = c[f]; });
     if (act === 'new') naming = true;
     if (act === 'cancel-name') naming = false;
+    if (act === 'cancel-del') { confirmDelId = null; return renderList(); }
+    if (act === 'save-draft') {
+      const name = $('name-field').value.trim();
+      if (!name) { $('name-field').focus(); return; }
+      addRecipe(name);
+    }
     if (act === 'confirm-name') {
       const name = ($('name-input').value || '').trim();
       if (!name) { $('name-input').focus(); return; }
-      const r = { id: 'r' + Date.now(), name }; FIELDS.forEach(f => { r[f] = R[f]; });
-      recipes.push(r); R.recipeId = r.id; naming = false;
+      addRecipe(name); naming = false;
     }
-    if (act === 'delete') confirmDel = true;
-    if (act === 'cancel-del') confirmDel = false;
-    if (act === 'confirm-del' && c) { recipes = recipes.filter(r => r !== c); R.recipeId = null; confirmDel = false; }
     changed();
   });
   $('sheet').addEventListener('keydown', ev => {
